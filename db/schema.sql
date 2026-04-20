@@ -9,108 +9,121 @@
 -- 1. SETUP AND EXTENSIONS
 -- ==========================================
 
--- Enable 'citext' for case-insensitive email comparisons
-CREATE EXTENSION IF NOT EXISTS citext;
+-- Create a dedicated schema for extensions to improve security
+CREATE SCHEMA IF NOT EXISTS extensions;
 
--- Create ENUM for transaction types (Income vs Expense)
-CREATE TYPE transaction_type AS ENUM ('income', 'expense');
+-- Install 'citext' in the dedicated schema for case-insensitive email handling
+CREATE EXTENSION IF NOT EXISTS citext SCHEMA extensions;
+
+-- Create custom ENUM type for transactions in the public schema
+CREATE TYPE public.transaction_type AS ENUM ('income', 'expense');
 
 -- ==========================================
 -- 2. AUTOMATION FUNCTIONS
 -- ==========================================
 
--- Function to automatically update the 'updated_at' timestamp on every row change
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- Secure function to automatically update the 'updated_at' timestamp
+-- SET search_path ensures the function only looks into specified schemas
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+SET search_path = public, extensions;
 
 -- ==========================================
 -- 3. TABLES DEFINITION
 -- ==========================================
 
--- A. USER PROFILE (Linked to Supabase Auth)
-CREATE TABLE user_profile (
+-- A. USER PROFILE (Linked to Supabase auth.users)
+CREATE TABLE public.user_profile (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE,
     display_name VARCHAR(255) NOT NULL,
-    email CITEXT NOT NULL UNIQUE,
+    email extensions.citext NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Trigger for user_profile timestamps
 CREATE TRIGGER tr_user_profile_updated_at
-BEFORE UPDATE ON user_profile
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+BEFORE UPDATE ON public.user_profile
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 -- B. CATEGORY
-CREATE TABLE category (
+CREATE TABLE public.category (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(64) NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_profile_id UUID REFERENCES user_profile(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    user_profile_id UUID REFERENCES public.user_profile(id) ON UPDATE CASCADE ON DELETE CASCADE,
     
-    -- UNIQUE constraint allowing NULL for global/default categories
+    -- UNIQUE constraint allowing NULL for global/default categories (PostgreSQL 15+)
     CONSTRAINT uq_category_name_per_user UNIQUE NULLS NOT DISTINCT (name, user_profile_id)
 );
 
-CREATE INDEX idx_category_user_id ON category(user_profile_id);
+-- Index for category foreign key performance
+CREATE INDEX idx_category_user_id ON public.category(user_profile_id);
 
+-- Trigger for category timestamps
 CREATE TRIGGER tr_category_updated_at
-BEFORE UPDATE ON category
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+BEFORE UPDATE ON public.category
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
--- C. ACCOUNT (e.g., Bank, Cash, Credit Card)
-CREATE TABLE account (
+-- C. ACCOUNT (e.g., Bank, Cash, Wallets)
+CREATE TABLE public.account (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(64) NOT NULL,
     include_in_total BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_profile_id UUID NOT NULL REFERENCES user_profile(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    user_profile_id UUID NOT NULL REFERENCES public.user_profile(id) ON UPDATE CASCADE ON DELETE CASCADE,
     
+    -- An account name must be unique per user
     CONSTRAINT uq_account_name_per_user UNIQUE (name, user_profile_id)
 );
 
-CREATE INDEX idx_account_user_id ON account(user_profile_id);
+-- Index for account foreign key performance
+CREATE INDEX idx_account_user_id ON public.account(user_profile_id);
 
+-- Trigger for account timestamps
 CREATE TRIGGER tr_account_updated_at
-BEFORE UPDATE ON account
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+BEFORE UPDATE ON public.account
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
--- D. TRANSACTION
-CREATE TABLE transaction (
+-- D. TRANSACTION (Movements)
+CREATE TABLE public.transaction (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type transaction_type NOT NULL,
+    type public.transaction_type NOT NULL,
     description TEXT,
     amount DECIMAL(19, 4) NOT NULL CHECK (amount > 0),
     date TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    account_id UUID NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    category_id UUID NOT NULL REFERENCES category(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    account_id UUID NOT NULL REFERENCES public.account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    category_id UUID NOT NULL REFERENCES public.category(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_transaction_account_id ON transaction(account_id);
-CREATE INDEX idx_transaction_category_id ON transaction(category_id);
+-- Indexes for transaction foreign key performance
+CREATE INDEX idx_transaction_account_id ON public.transaction(account_id);
+CREATE INDEX idx_transaction_category_id ON public.transaction(category_id);
 
+-- Trigger for transaction timestamps
 CREATE TRIGGER tr_transaction_updated_at
-BEFORE UPDATE ON transaction
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+BEFORE UPDATE ON public.transaction
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 -- ==========================================
--- 4. SUPABASE AUTH INTEGRATION
+-- 4. SUPABASE AUTH INTEGRATION (SYNC)
 -- ==========================================
 
--- Automatically create a profile when a new user signs up via Supabase Auth
+-- Secure function to automatically create a profile when a user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -122,9 +135,10 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, extensions;
 
--- Trigger triggered by auth.users (internal Supabase table)
+-- Trigger that listens to the internal auth.users table for new sign-ups
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
