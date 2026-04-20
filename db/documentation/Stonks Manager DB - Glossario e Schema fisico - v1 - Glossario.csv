@@ -1,0 +1,35 @@
+Termine,Entità padre,Tipo,Sinonimi,Descrizione
+user_profile,,Entità,Utente,Entità che raggruppa un insieme di persone fisiche registrate
+account,,Entità,Conto,Entità che raggruppa un insieme di movimenti correlati
+transaction,,Entità,Transazione; Movimento,Entità che rappresenta una transazione
+category,,Entità,Categoria,Entità che raggruppa un insieme di movimenti correlati. Può essere predefinita o creata dall'utente
+id,user_profile,Attributo,,Identificativo di un utente
+display_name,user_profile,Attributo,,Nome visualizzato di un utente
+email,user_profile,Attributo,,Indirizzo e-mail di un utente
+created_at,user_profile,Attributo,,Data e ora di creazione del record
+updated_at,user_profile,Attributo,,Data e ora dell'ultimo aggiornamento del record
+id,account,Attributo,,Identificativo di un conto
+name,account,Attributo,,Nome visualizzato di un conto
+include_in_total,account,Attributo,,Flag che permette o meno il conteggio del saldo del conto nel calcolo generale del saldo di tutti i conti
+created_at,account,Attributo,,Data e ora di creazione del record
+updated_at,account,Attributo,,Data e ora dell'ultimo aggiornamento del record
+user_profile_id,account,Attributo,,Collega l'entità 'account' a 'user_profile'
+id,transaction,Attributo,,Identificativo di un movimento
+type,transaction,Attributo,,Specifica se il movimento è in entrata o in uscita
+description,transaction,Attributo,,Breve descrizione del movimento
+amount,transaction,Attributo,,Valore della transazione in valuta predefinita (€ - EUR). Segno della transazione stabilito dalla tipologia stessa
+date,transaction,Attributo,,Data e ora dell'avvenimento di un movimento
+created_at,transaction,Attributo,,Data e ora di creazione del record
+updated_at,transaction,Attributo,,Data e ora dell'ultimo aggiornamento del record
+account_id,transaction,Attributo,,Collega l'entità 'transaction' a 'account'
+category_id,transaction,Attributo,,Collega l'entità 'transaction' a 'category'
+id,category,Attributo,,Identificativo di una categoria
+name,category,Attributo,,Nome visualizzato di una categoria
+description,category,Attributo,,"Breve descrizione di una categoria. Utile all'AI per la categorizzazione intelligente, ma opzionale"
+created_at,category,Attributo,,Data e ora di creazione del record
+updated_at,category,Attributo,,Data e ora dell'ultimo aggiornamento del record
+user_profile_id,category,Attributo,,Collega l'entità 'category' a 'user_profile'
+manages,user_profile - account,Relazione,Gestisce,"(1,N) / (1,1) Un utente gestisce molti conti; un conto è gestito da un utente"
+contains,account - transaction,Relazione,Contiene,"(1,N) / (1,1) Un conto contiene molti movimenti; un movimento è contenuto in un conto"
+belongs_to,transaction - category,Relazione,Appartiene,"(1,1) / (1,N) Un movimento appartiene ad una categoria; una categoria appartiene a molti movimenti"
+has,user_profile - category,Relazione,Ha,"(1,N) / (0,1) Un utente ha molte categorie; una categoria può appartenere ad un utente"

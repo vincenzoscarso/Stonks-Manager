@@ -1,0 +1,27 @@
+Attributo,Entità padre,Tipo dato,Dimensione,Tipo di chiave,NULL,Valore default,Azioni referenziali,Vincolo unique,Altro,Note
+id,user_profile,UUID,,PRIMARY KEY,NO,,ON UPDATE CASCADE; ON DELETE CASCADE,,,Riferimento a auth.users(id) di Supabase
+display_name,user_profile,VARCHAR,255,,NO,,,,,
+email,user_profile,CITEXT,,,NO,,,UNIQUE,,"Necessario abilitare l'estensione ""citext"" di PostgreSQL"
+created_at,user_profile,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,
+updated_at,user_profile,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigger nel DB per la modifica automatica del timestamp
+id,account,UUID,,PRIMARY KEY,NO,gen_random_uuid(),,,,
+name,account,VARCHAR,64,,NO,,,"UNIQUE (name, user_profile_id)",,
+include_in_total,account,BOOLEAN,,,NO,TRUE,,,,
+created_at,account,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,
+updated_at,account,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigger nel DB per la modifica automatica del timestamp
+user_profile_id,account,*identico a 'user_profile.id',,FOREIGN KEY,NO,,ON UPDATE CASCADE; ON DELETE CASCADE,"UNIQUE (name, user_profile_id)",,INDEX necessario per velocizzare le operazioni
+id,transaction,UUID,,PRIMARY KEY,NO,gen_random_uuid(),,,,
+type,transaction,"transaction_type: ENUM ('income', 'expense')",,,NO,,,,,
+description,transaction,TEXT,,,SI,,,,,
+amount,transaction,DECIMAL,cifre totali: 19; cifre decimali: 4,,NO,,,,CHECK (amount > 0),
+date,transaction,TIMESTAMPTZ,,,NO,,,,,
+created_at,transaction,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,
+updated_at,transaction,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigger nel DB per la modifica automatica del timestamp
+account_id,transaction,*identico a 'account.id',,FOREIGN KEY,NO,,ON UPDATE CASCADE; ON DELETE CASCADE,,,INDEX necessario per velocizzare le operazioni
+category_id,transaction,*identico a 'category.id',,FOREIGN KEY,NO,,ON UPDATE CASCADE; ON DELETE RESTRICT,,,INDEX necessario per velocizzare le operazioni; Da gestire correttamente in logica applicativa all'eliminazione di una categoria; permettere cambio categoria
+id,category,UUID,,PRIMARY KEY,NO,gen_random_uuid(),,,,
+name,category,VARCHAR,64,,NO,,,"UNIQUE NULLS NOT DISTINCT (name, user_profile_id)",,INDEX necessario sulle categorie predefinite per identificarle correttamente
+description,category,TEXT,,,SI,,,,,
+created_at,category,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,
+updated_at,category,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigger nel DB per la modifica automatica del timestamp
+user_profile_id,category,*identico a 'user_profile.id',,FOREIGN KEY,SI,,ON UPDATE CASCADE; ON DELETE CASCADE,"UNIQUE NULLS NOT DISTINCT (name, user_profile_id)",,INDEX necessario per velocizzare le operazioni; Pari a NULL per categoria contrassegnata come predefinita
