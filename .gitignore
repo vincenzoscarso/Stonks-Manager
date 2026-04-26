@@ -1,4 +1,4 @@
-.env
+*.env
 TODO.md
 TODID.md
 res/instructions
