@@ -12,6 +12,9 @@
 -- Create a dedicated schema for extensions to improve security
 CREATE SCHEMA IF NOT EXISTS extensions;
 
+-- Create a dedicated schema for internal functions to hide them from the API
+CREATE SCHEMA IF NOT EXISTS internal;
+
 -- Install 'citext' in the dedicated schema for case-insensitive email handling
 CREATE EXTENSION IF NOT EXISTS citext SCHEMA extensions;
 
@@ -24,7 +27,7 @@ CREATE TYPE public.transaction_type AS ENUM ('income', 'expense');
 
 -- Secure function to automatically update the 'updated_at' timestamp
 -- SET search_path ensures the function only looks into specified schemas
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+CREATE OR REPLACE FUNCTION internal.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -49,7 +52,7 @@ CREATE TABLE public.user_profile (
 -- Trigger for user_profile timestamps
 CREATE TRIGGER tr_user_profile_updated_at
 BEFORE UPDATE ON public.user_profile
-FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+FOR EACH ROW EXECUTE FUNCTION internal.update_updated_at_column();
 
 
 -- B. CATEGORY
@@ -71,7 +74,7 @@ CREATE INDEX idx_category_user_id ON public.category(user_profile_id);
 -- Trigger for category timestamps
 CREATE TRIGGER tr_category_updated_at
 BEFORE UPDATE ON public.category
-FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+FOR EACH ROW EXECUTE FUNCTION internal.update_updated_at_column();
 
 
 -- C. ACCOUNT (e.g., Bank, Cash, Wallets)
@@ -93,7 +96,7 @@ CREATE INDEX idx_account_user_id ON public.account(user_profile_id);
 -- Trigger for account timestamps
 CREATE TRIGGER tr_account_updated_at
 BEFORE UPDATE ON public.account
-FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+FOR EACH ROW EXECUTE FUNCTION internal.update_updated_at_column();
 
 
 -- D. TRANSACTION (Movements)
@@ -116,7 +119,7 @@ CREATE INDEX idx_transaction_category_id ON public.transaction(category_id);
 -- Trigger for transaction timestamps
 CREATE TRIGGER tr_transaction_updated_at
 BEFORE UPDATE ON public.transaction
-FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+FOR EACH ROW EXECUTE FUNCTION internal.update_updated_at_column();
 
 
 -- ==========================================
@@ -124,7 +127,7 @@ FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 -- ==========================================
 
 -- Secure function to automatically create a profile when a user signs up
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+CREATE OR REPLACE FUNCTION internal.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.user_profile (id, email, display_name)
@@ -141,4 +144,11 @@ SET search_path = public, extensions;
 -- Trigger that listens to the internal auth.users table for new sign-ups
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+  FOR EACH ROW EXECUTE FUNCTION internal.handle_new_user();
+
+-- ==========================================
+-- 5. CLEANUP
+-- ==========================================
+-- Drops the old vulnerable functions from the public schema if they exist
+DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP FUNCTION IF EXISTS public.update_updated_at_column();
