@@ -1,0 +1,119 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, cast, Optional
+from supabase import create_client
+from app.models.transaction import NewTransaction, Transaction
+from app.utils.get_required_env import get_required_env
+
+
+class TransactionService:
+    def __init__(self, supabase_client: Any | None = None) -> None:
+        if supabase_client is not None:
+            self.supabase = supabase_client
+            return
+
+        supabase_url = get_required_env("SUPABASE_URL")
+        supabase_key = get_required_env("SUPABASE_KEY")
+
+        self.supabase: Any = create_client(supabase_url, supabase_key)
+
+    def get_transactions(self, user_id: str) -> List[Transaction]:
+        response: Any = (
+            self.supabase.table("transaction")
+            .select("*, account!inner(user_profile_id)")
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+
+        if getattr(response, "error", None):
+            raise RuntimeError(str(response.error))
+
+        data = getattr(response, "data", None)
+        if not isinstance(data, list):
+            raise RuntimeError("Invalid response from Supabase when fetching transactions")
+
+        return [Transaction.model_validate(row) for row in data]
+
+    def add_transaction(self, user_id: str, transaction: NewTransaction) -> Transaction:
+        # Verify account belongs to user
+        account_response: Any = (
+            self.supabase.table("account")
+            .select("id")
+            .eq("id", str(transaction.account_id))
+            .eq("user_profile_id", user_id)
+            .execute()
+        )
+        if not account_response.data:
+            raise ValueError("Account not found or does not belong to user")
+
+        payload: Dict[str, Any] = {
+            "type": transaction.type,
+            "description": transaction.description,
+            "amount": str(transaction.amount),  # Supabase expects string for decimal
+            "date": transaction.date.isoformat(),
+            "account_id": str(transaction.account_id),
+            "category_id": str(transaction.category_id),
+        }
+        response: Any = self.supabase.table("transaction").insert(payload).select("*").execute()
+
+        if getattr(response, "error", None):
+            raise RuntimeError(str(response.error))
+
+        data = getattr(response, "data", None)
+        if not isinstance(data, list) or not data:
+            raise RuntimeError("Invalid response from Supabase when adding transaction")
+
+        first_row = cast(Dict[str, Any], data[0])
+        return Transaction.model_validate(first_row)
+
+    def update_transaction(self, user_id: str, transaction_id: str, transaction: NewTransaction) -> Transaction:
+        # Verify account belongs to user
+        account_response: Any = (
+            self.supabase.table("account")
+            .select("id")
+            .eq("id", str(transaction.account_id))
+            .eq("user_profile_id", user_id)
+            .execute()
+        )
+        if not account_response.data:
+            raise ValueError("Account not found or does not belong to user")
+
+        payload: Dict[str, Any] = {
+            "type": transaction.type,
+            "description": transaction.description,
+            "amount": str(transaction.amount),
+            "date": transaction.date.isoformat(),
+            "account_id": str(transaction.account_id),
+            "category_id": str(transaction.category_id),
+        }
+        response: Any = (
+            self.supabase.table("transaction")
+            .update(payload)
+            .eq("id", transaction_id)
+            .select("*, account!inner(user_profile_id)")
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+
+        if getattr(response, "error", None):
+            raise RuntimeError(str(response.error))
+
+        data = getattr(response, "data", None)
+        if not isinstance(data, list) or not data:
+            raise RuntimeError("Transaction not found or update failed")
+
+        first_row = cast(Dict[str, Any], data[0])
+        return Transaction.model_validate(first_row)
+
+    def delete_transaction(self, user_id: str, transaction_id: str) -> None:
+        response: Any = (
+            self.supabase.table("transaction")
+            .delete()
+            .eq("id", transaction_id)
+            .select("*, account!inner(user_profile_id)")
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+
+        if getattr(response, "error", None):
+            raise RuntimeError(str(response.error))
