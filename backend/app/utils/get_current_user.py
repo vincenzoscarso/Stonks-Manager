@@ -1,30 +1,27 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase import create_client
-from typing import Any
-import os
+from supabase import Client
+from app.utils.supabase_client import get_supabase_client
 
-security = HTTPBearer()
-
-
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    token = credentials.credentials
-
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
-
-    if not supabase_url or not supabase_key:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server configuration error")
-
-    supabase = create_client(supabase_url, supabase_key)
-
+def get_current_user(supabase: Client = Depends(get_supabase_client)) -> str:
+    """
+    Dependency that returns the current user's ID.
+    It uses the Supabase client provided by get_supabase_client,
+    which already has the session set.
+    """
     try:
-        response = supabase.auth.get_user(token)
+        # get_user() without arguments uses the session already set in the client
+        response = supabase.auth.get_user()
 
         if response and response.user:
             return str(response.user.id)
 
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token") from e
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        ) from e
