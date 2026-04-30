@@ -1,0 +1,4 @@
+{
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.typeCheckingMode": "basic"
+}

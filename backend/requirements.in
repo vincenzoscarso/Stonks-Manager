@@ -1,0 +1,9 @@
+dotenv
+fastapi
+invoke
+lexicon
+uvicorn
+pytest
+pydantic
+pydantic[email]
+supabase==2.10.0
