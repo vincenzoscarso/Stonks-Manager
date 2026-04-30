@@ -1,6 +1,7 @@
 *.env
 TODO.md
 TODID.md
+.trae/
+.venv/
 res/instructions
-instructions.md
 backend/print_jwt.py

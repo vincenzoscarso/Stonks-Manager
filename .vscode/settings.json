@@ -1,4 +1,5 @@
 {
     "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "python.defaultInterpreterPath": "C:\\Users\\vince\\Desktop\\Code\\_Projects\\Stonks-Manager\\backend\\.venv\\Scripts\\python.exe"
 }
