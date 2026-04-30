@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.models.user import NewUserProfile, UserProfile
 from app.services.user_service import UserService
 from app.utils.get_current_user import get_current_user
-from app.utils.supabase_client import get_supabase_client
+from backend.app.utils.get_supabase_client import get_supabase_client
 from supabase import Client
 
 router = APIRouter()
