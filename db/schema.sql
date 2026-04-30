@@ -146,9 +146,49 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION internal.handle_new_user();
 
+
 -- ==========================================
 -- 5. CLEANUP
 -- ==========================================
 -- Drops the old vulnerable functions from the public schema if they exist
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP FUNCTION IF EXISTS public.update_updated_at_column();
+
+
+-- ==========================================
+-- 6. ROW LEVEL SECURITY (RLS) POLICIES
+-- ==========================================
+
+-- Enable RLS on all tables
+ALTER TABLE public.user_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.category ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.account ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transaction ENABLE ROW LEVEL SECURITY;
+
+-- A. USER PROFILE
+DROP POLICY IF EXISTS "Users can manage their own profile." ON public.user_profile;
+CREATE POLICY "Users can manage their own profile."
+ON public.user_profile FOR ALL TO authenticated 
+USING ( (SELECT auth.uid()) = id ) 
+WITH CHECK ( (SELECT auth.uid()) = id );
+
+-- B. CATEGORY
+DROP POLICY IF EXISTS "Users can manage their own categories." ON public.category;
+CREATE POLICY "Users can manage their own categories."
+ON public.category FOR ALL TO authenticated 
+USING ( (SELECT auth.uid()) = user_profile_id ) 
+WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
+
+-- C. ACCOUNT
+DROP POLICY IF EXISTS "Users can manage their own accounts." ON public.account;
+CREATE POLICY "Users can manage their own accounts."
+ON public.account FOR ALL TO authenticated 
+USING ( (SELECT auth.uid()) = user_profile_id ) 
+WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
+
+-- D. TRANSACTION
+DROP POLICY IF EXISTS "Users can manage transactions for their accounts." ON public.transaction;
+CREATE POLICY "Users can manage transactions for their accounts."
+ON public.transaction FOR ALL TO authenticated 
+USING ( account_id IN (SELECT id FROM public.account WHERE user_profile_id = (SELECT auth.uid())) )
+WITH CHECK ( account_id IN (SELECT id FROM public.account WHERE user_profile_id = (SELECT auth.uid())) );
