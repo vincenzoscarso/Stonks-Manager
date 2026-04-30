@@ -163,7 +163,7 @@ ALTER TABLE public.category ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.account ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transaction ENABLE ROW LEVEL SECURITY;
 
--- (Policies for User Profile, Category, Account, and Transaction remain unchanged)
+-- RLS policies to allow CRUD operations to users only on their own data
 CREATE POLICY "Users can manage their own profile." ON public.user_profile FOR ALL TO authenticated USING ( (SELECT auth.uid()) = id ) WITH CHECK ( (SELECT auth.uid()) = id );
 CREATE POLICY "Users can manage their own categories." ON public.category FOR ALL TO authenticated USING ( (SELECT auth.uid()) = user_profile_id ) WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
 CREATE POLICY "Users can manage their own accounts." ON public.account FOR ALL TO authenticated USING ( (SELECT auth.uid()) = user_profile_id ) WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
