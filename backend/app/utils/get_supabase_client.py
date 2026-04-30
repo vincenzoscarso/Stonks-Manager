@@ -18,10 +18,12 @@ def get_supabase_client(credentials: HTTPAuthorizationCredentials = Depends(secu
     client = create_client(supabase_url, supabase_key)
 
     try:
-        # Set the session so RLS policies using auth.uid() work correctly.
-        # We also set postgrest.auth to be absolutely sure the token is used for DB queries.
-        client.auth.set_session(token, "") 
+        # Set the token for PostgREST (RLS)
         client.postgrest.auth(token)
+        
+        # We don't call set_session(token, "") here because it might fail 
+        # without a valid refresh token and it's not strictly necessary 
+        # for stateless API requests if we use get_user(token) later.
         return client
     except Exception as e:
         raise HTTPException(

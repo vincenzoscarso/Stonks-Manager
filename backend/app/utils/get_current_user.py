@@ -1,16 +1,19 @@
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import Client
-from app.utils.get_supabase_client import get_supabase_client
+from app.utils.get_supabase_client import get_supabase_client, security
 
-def get_current_user(supabase: Client = Depends(get_supabase_client)) -> str:
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    supabase: Client = Depends(get_supabase_client)
+) -> str:
     """
     Dependency that returns the current user's ID.
-    It uses the Supabase client provided by get_supabase_client,
-    which already has the session set.
     """
+    token = credentials.credentials
     try:
-        # get_user() without arguments uses the session already set in the client
-        response = supabase.auth.get_user()
+        # Pass the token explicitly to get_user
+        response = supabase.auth.get_user(token)
 
         if response and response.user:
             return str(response.user.id)
