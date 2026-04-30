@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, cast
-from supabase import create_client
+from postgrest.base_request_builder import APIResponse
+from supabase import create_client, Client
 from app.models.user import NewUserProfile, UserProfile
 from app.utils.get_required_env import get_required_env
 
@@ -15,13 +16,19 @@ class UserService:
         supabase_url = get_required_env("SUPABASE_URL")
         supabase_key = get_required_env("SUPABASE_KEY")
 
-        self.supabase: Any = create_client(supabase_url, supabase_key)
+        self.supabase: Client = create_client(supabase_url, supabase_key)
 
     def get_user(self, user_id: str) -> UserProfile:
-        response: Any = self.supabase.table("user_profile").select("*").eq("id", user_id).execute()
+        response: APIResponse = self.supabase.table("user_profile").select("*").eq("id", user_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        print("#################################################")
+        print(user_id)
+        print(f"response: {response}")
+
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
+        
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -36,10 +43,11 @@ class UserService:
             "display_name": user_profile.display_name,
             "email": user_profile.email,
         }
-        response: Any = self.supabase.table("user_profile").insert(payload).select("*").execute()
+        response: APIResponse = self.supabase.table("user_profile").insert(payload).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -53,10 +61,11 @@ class UserService:
             "display_name": user_profile.display_name,
             "email": user_profile.email,
         }
-        response: Any = self.supabase.table("user_profile").update(payload).eq("id", user_id).select("*").execute()
+        response: APIResponse = self.supabase.table("user_profile").update(payload).eq("id", user_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -66,7 +75,8 @@ class UserService:
         return UserProfile.model_validate(first_row)
 
     def delete_user(self, user_id: str) -> None:
-        response: Any = self.supabase.table("user_profile").delete().eq("id", user_id).execute()
+        response: APIResponse = self.supabase.table("user_profile").delete().eq("id", user_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
