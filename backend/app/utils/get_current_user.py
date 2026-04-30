@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from supabase import Client
-from backend.app.utils.get_supabase_client import get_supabase_client
+from app.utils.get_supabase_client import get_supabase_client
 
 def get_current_user(supabase: Client = Depends(get_supabase_client)) -> str:
     """
