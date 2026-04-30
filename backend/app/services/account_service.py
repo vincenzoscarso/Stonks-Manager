@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, cast
-from supabase import create_client
+from postgrest.base_request_builder import APIResponse
+from supabase import create_client, Client
 from app.models.account import NewAccount, Account
 from app.utils.get_required_env import get_required_env
 
@@ -15,13 +16,14 @@ class AccountService:
         supabase_url = get_required_env("SUPABASE_URL")
         supabase_key = get_required_env("SUPABASE_KEY")
 
-        self.supabase: Any = create_client(supabase_url, supabase_key)
+        self.supabase: Client = create_client(supabase_url, supabase_key)
 
     def get_accounts(self, user_id: str) -> List[Account]:
-        response: Any = self.supabase.table("account").select("*").eq("user_profile_id", user_id).execute()
+        response: APIResponse = self.supabase.table("account").select("*").eq("user_profile_id", user_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list):
@@ -35,10 +37,11 @@ class AccountService:
             "include_in_total": account.include_in_total,
             "user_profile_id": user_id,
         }
-        response: Any = self.supabase.table("account").insert(payload).select("*").execute()
+        response: APIResponse = self.supabase.table("account").insert(payload).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -52,17 +55,13 @@ class AccountService:
             "name": account.name,
             "include_in_total": account.include_in_total,
         }
-        response: Any = (
-            self.supabase.table("account")
-            .update(payload)
-            .eq("id", account_id)
-            .eq("user_profile_id", user_id)
-            .select("*")
-            .execute()
+        response: APIResponse = (
+            self.supabase.table("account").update(payload).eq("id", account_id).eq("user_profile_id", user_id).execute()
         )
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -72,7 +71,10 @@ class AccountService:
         return Account.model_validate(first_row)
 
     def delete_account(self, user_id: str, account_id: str) -> None:
-        response: Any = self.supabase.table("account").delete().eq("id", account_id).eq("user_profile_id", user_id).execute()
+        response: APIResponse = (
+            self.supabase.table("account").delete().eq("id", account_id).eq("user_profile_id", user_id).execute()
+        )
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))

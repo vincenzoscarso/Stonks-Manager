@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, cast, Optional
-from supabase import create_client
+from postgrest.base_request_builder import APIResponse
+from supabase import create_client, Client
 from app.models.transaction import NewTransaction, Transaction
 from app.utils.get_required_env import get_required_env
 
@@ -15,18 +16,19 @@ class TransactionService:
         supabase_url = get_required_env("SUPABASE_URL")
         supabase_key = get_required_env("SUPABASE_KEY")
 
-        self.supabase: Any = create_client(supabase_url, supabase_key)
+        self.supabase: Client = create_client(supabase_url, supabase_key)
 
     def get_transactions(self, user_id: str) -> List[Transaction]:
-        response: Any = (
+        response: APIResponse = (
             self.supabase.table("transaction")
             .select("*, account!inner(user_profile_id)")
             .eq("account.user_profile_id", user_id)
             .execute()
         )
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list):
@@ -36,7 +38,7 @@ class TransactionService:
 
     def add_transaction(self, user_id: str, transaction: NewTransaction) -> Transaction:
         # Verify account belongs to user
-        account_response: Any = (
+        account_response: APIResponse = (
             self.supabase.table("account")
             .select("id")
             .eq("id", str(transaction.account_id))
@@ -54,10 +56,11 @@ class TransactionService:
             "account_id": str(transaction.account_id),
             "category_id": str(transaction.category_id),
         }
-        response: Any = self.supabase.table("transaction").insert(payload).select("*").execute()
+        response: APIResponse = self.supabase.table("transaction").insert(payload).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -68,7 +71,7 @@ class TransactionService:
 
     def update_transaction(self, user_id: str, transaction_id: str, transaction: NewTransaction) -> Transaction:
         # Verify account belongs to user
-        account_response: Any = (
+        account_response: APIResponse = (
             self.supabase.table("account")
             .select("id")
             .eq("id", str(transaction.account_id))
@@ -86,17 +89,11 @@ class TransactionService:
             "account_id": str(transaction.account_id),
             "category_id": str(transaction.category_id),
         }
-        response: Any = (
-            self.supabase.table("transaction")
-            .update(payload)
-            .eq("id", transaction_id)
-            .select("*, account!inner(user_profile_id)")
-            .eq("account.user_profile_id", user_id)
-            .execute()
-        )
+        response: APIResponse = self.supabase.table("transaction").update(payload).eq("id", transaction_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
@@ -106,14 +103,8 @@ class TransactionService:
         return Transaction.model_validate(first_row)
 
     def delete_transaction(self, user_id: str, transaction_id: str) -> None:
-        response: Any = (
-            self.supabase.table("transaction")
-            .delete()
-            .eq("id", transaction_id)
-            .select("*, account!inner(user_profile_id)")
-            .eq("account.user_profile_id", user_id)
-            .execute()
-        )
+        response: APIResponse = self.supabase.table("transaction").delete().eq("id", transaction_id).execute()
 
-        if getattr(response, "error", None):
-            raise RuntimeError(str(response.error))
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
