@@ -34,6 +34,7 @@ SET search_path = public, extensions;
 CREATE OR REPLACE FUNCTION internal.rls_auto_enable()
 RETURNS event_trigger
 LANGUAGE plpgsql
+SET search_path = pg_catalog, internal
 AS $$
 DECLARE
     obj record;
@@ -142,13 +143,12 @@ CREATE TRIGGER on_auth_user_created
 -- 5. CLEANUP AND GLOBAL TRIGGERS
 -- ==========================================
 
--- Clean up old public-schema versions to satisfy security advisor
+DROP EVENT TRIGGER IF EXISTS ensure_rls;
+
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP FUNCTION IF EXISTS public.update_updated_at_column();
 DROP FUNCTION IF EXISTS public.rls_auto_enable();
 
--- Event Trigger as seen in image_e5be3f.png
-DROP EVENT TRIGGER IF EXISTS ensure_rls;
 CREATE EVENT TRIGGER ensure_rls
 ON ddl_command_end
 WHEN TAG IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
