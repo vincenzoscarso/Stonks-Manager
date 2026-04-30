@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from app.models.transaction import NewTransaction, Transaction
 from app.services.transaction_service import TransactionService
-from app.auth import get_current_user
+from app.utils.get_current_user import get_current_user
 
 router = APIRouter()
 transaction_service = TransactionService()
