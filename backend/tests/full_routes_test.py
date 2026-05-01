@@ -1,14 +1,19 @@
 import httpx
 import sys
+import os
 import json
 import time
 from typing import Any, List, Dict
 from supabase import create_client
 from backend.app.utils.get_env_variable import getEnvVariable
 
-BASE_URL = "http://localhost:8000/api"
-TEST_EMAIL = "REDACTED_EMAIL"
-TEST_PASSWORD = "REDACTED_PASSWORD"
+BASE_URL = (
+    getEnvVariable("API_BASE_URL")
+    if "API_BASE_URL" in os.environ
+    else "http://localhost:8000/api"
+)
+TEST_EMAIL = getEnvVariable("TEST_USER_EMAIL")
+TEST_PASSWORD = getEnvVariable("TEST_USER_PASSWORD")
 TIMEOUT = 10.0
 
 
@@ -18,7 +23,9 @@ class TestReport:
         self.failed = False
 
     def add_result(self, name: str, status: int, success: bool, error: str = ""):
-        self.results.append({"name": name, "status": status, "success": success, "error": error})
+        self.results.append(
+            {"name": name, "status": status, "success": success, "error": error}
+        )
         if not success:
             self.failed = True
 
@@ -49,7 +56,9 @@ def get_auth_token() -> str:
         print(f"\n--- Authenticating Test User: {TEST_EMAIL} ---")
         # 1. Try to sign in first
         try:
-            res: Any = supabase.auth.sign_in_with_password({"email": TEST_EMAIL, "password": TEST_PASSWORD})
+            res: Any = supabase.auth.sign_in_with_password(
+                {"email": TEST_EMAIL, "password": TEST_PASSWORD}
+            )
             if res.session:
                 print("   [OK] Signed in successfully")
                 return str(res.session.access_token)
@@ -60,13 +69,21 @@ def get_auth_token() -> str:
         # 2. If sign in fails, try to sign up
         print("   [INFO] User not found or sign-in failed. Attempting sign-up...")
         res = supabase.auth.sign_up(
-            {"email": TEST_EMAIL, "password": TEST_PASSWORD, "options": {"data": {"display_name": "Stonks Test Runner"}}}
+            {
+                "email": TEST_EMAIL,
+                "password": TEST_PASSWORD,
+                "options": {"data": {"display_name": "Stonks Test Runner"}},
+            }
         )
 
         if not res.session:
             # Handle potential email confirmation
-            print("   [INFO] User created, but no session returned. Attempting sign-in...")
-            res = supabase.auth.sign_in_with_password({"email": TEST_EMAIL, "password": TEST_PASSWORD})
+            print(
+                "   [INFO] User created, but no session returned. Attempting sign-in..."
+            )
+            res = supabase.auth.sign_in_with_password(
+                {"email": TEST_EMAIL, "password": TEST_PASSWORD}
+            )
 
         if not res.session:
             raise RuntimeError("Could not obtain session after sign-up/sign-in.")
@@ -90,7 +107,9 @@ def test_users(headers: dict, report: TestReport) -> None:
     # Note: This might fail with 400 if the profile was already created by the DB trigger
     try:
         new_user_data = {"display_name": "Test User Initial", "email": TEST_EMAIL}
-        response = httpx.post(f"{BASE_URL}/users", headers=headers, json=new_user_data, timeout=TIMEOUT)
+        response = httpx.post(
+            f"{BASE_URL}/users", headers=headers, json=new_user_data, timeout=TIMEOUT
+        )
         # We consider 200/201 as success. 400 is common if already exists.
         is_success = response.status_code in (200, 201)
 
@@ -100,7 +119,15 @@ def test_users(headers: dict, report: TestReport) -> None:
             "POST /users",
             response.status_code,
             is_success or (response.status_code == 400),
-            "" if is_success else f"Note: {response.text}" if response.status_code == 400 else response.text,
+            (
+                ""
+                if is_success
+                else (
+                    f"Note: {response.text}"
+                    if response.status_code == 400
+                    else response.text
+                )
+            ),
         )
         if is_success:
             print("   [OK] User profile created via POST")
@@ -128,8 +155,13 @@ def test_users(headers: dict, report: TestReport) -> None:
     # 3. Update User Profile
     if user_email:
         try:
-            update_data = {"display_name": f"User {int(time.time())}", "email": user_email}
-            response = httpx.put(f"{BASE_URL}/users", headers=headers, json=update_data, timeout=TIMEOUT)
+            update_data = {
+                "display_name": f"User {int(time.time())}",
+                "email": user_email,
+            }
+            response = httpx.put(
+                f"{BASE_URL}/users", headers=headers, json=update_data, timeout=TIMEOUT
+            )
             success = response.status_code == 200
             report.add_result(
                 "PUT /users",
@@ -142,7 +174,12 @@ def test_users(headers: dict, report: TestReport) -> None:
         except Exception as e:
             report.add_result("PUT /users", 0, False, str(e))
     else:
-        report.add_result("PUT /users", 0, False, "Skipped: Could not obtain user email from GET /users")
+        report.add_result(
+            "PUT /users",
+            0,
+            False,
+            "Skipped: Could not obtain user email from GET /users",
+        )
 
 
 def test_categories(headers: dict, report: TestReport) -> str:
@@ -167,9 +204,16 @@ def test_categories(headers: dict, report: TestReport) -> str:
     try:
         cat_name = f"Test Cat {int(time.time())}"
         new_cat = {"name": cat_name, "description": "Testing category"}
-        response = httpx.post(f"{BASE_URL}/categories", headers=headers, json=new_cat, timeout=TIMEOUT)
+        response = httpx.post(
+            f"{BASE_URL}/categories", headers=headers, json=new_cat, timeout=TIMEOUT
+        )
         success = response.status_code == 200
-        report.add_result("POST /categories", response.status_code, success, "" if success else response.text)
+        report.add_result(
+            "POST /categories",
+            response.status_code,
+            success,
+            "" if success else response.text,
+        )
         if success:
             cat_id = response.json()["id"]
             print(f"   [OK] Category created with ID: {cat_id}")
@@ -179,8 +223,16 @@ def test_categories(headers: dict, report: TestReport) -> str:
     # 3. Update Category
     if cat_id:
         try:
-            update_cat = {"name": f"Updated {int(time.time())}", "description": "Updated description"}
-            response = httpx.put(f"{BASE_URL}/categories/{cat_id}", headers=headers, json=update_cat, timeout=TIMEOUT)
+            update_cat = {
+                "name": f"Updated {int(time.time())}",
+                "description": "Updated description",
+            }
+            response = httpx.put(
+                f"{BASE_URL}/categories/{cat_id}",
+                headers=headers,
+                json=update_cat,
+                timeout=TIMEOUT,
+            )
             success = response.status_code == 200
             report.add_result(
                 f"PUT /categories/{cat_id}",
@@ -218,9 +270,16 @@ def test_accounts(headers: dict, report: TestReport) -> str:
     try:
         acc_name = f"Test Acc {int(time.time())}"
         new_acc = {"name": acc_name, "include_in_total": True}
-        response = httpx.post(f"{BASE_URL}/accounts", headers=headers, json=new_acc, timeout=TIMEOUT)
+        response = httpx.post(
+            f"{BASE_URL}/accounts", headers=headers, json=new_acc, timeout=TIMEOUT
+        )
         success = response.status_code == 200
-        report.add_result("POST /accounts", response.status_code, success, "" if success else response.text)
+        report.add_result(
+            "POST /accounts",
+            response.status_code,
+            success,
+            "" if success else response.text,
+        )
         if success:
             acc_id = response.json()["id"]
             print(f"   [OK] Account created with ID: {acc_id}")
@@ -230,8 +289,16 @@ def test_accounts(headers: dict, report: TestReport) -> str:
     # 3. Update Account
     if acc_id:
         try:
-            update_acc = {"name": f"Updated {int(time.time())}", "include_in_total": False}
-            response = httpx.put(f"{BASE_URL}/accounts/{acc_id}", headers=headers, json=update_acc, timeout=TIMEOUT)
+            update_acc = {
+                "name": f"Updated {int(time.time())}",
+                "include_in_total": False,
+            }
+            response = httpx.put(
+                f"{BASE_URL}/accounts/{acc_id}",
+                headers=headers,
+                json=update_acc,
+                timeout=TIMEOUT,
+            )
             success = response.status_code == 200
             report.add_result(
                 f"PUT /accounts/{acc_id}",
@@ -247,12 +314,16 @@ def test_accounts(headers: dict, report: TestReport) -> str:
     return acc_id
 
 
-def test_transactions(headers: dict, account_id: str, category_id: str, report: TestReport) -> str:
+def test_transactions(
+    headers: dict, account_id: str, category_id: str, report: TestReport
+) -> str:
     print("\n--- Testing TRANSACTION Routes ---")
     tx_id = ""
     # 1. Get Transactions
     try:
-        response = httpx.get(f"{BASE_URL}/transactions", headers=headers, timeout=TIMEOUT)
+        response = httpx.get(
+            f"{BASE_URL}/transactions", headers=headers, timeout=TIMEOUT
+        )
         success = response.status_code == 200
         report.add_result(
             "GET /transactions",
@@ -276,9 +347,19 @@ def test_transactions(headers: dict, account_id: str, category_id: str, report: 
                 "account_id": account_id,
                 "category_id": category_id,
             }
-            response = httpx.post(f"{BASE_URL}/transactions", headers=headers, json=new_tx, timeout=TIMEOUT)
+            response = httpx.post(
+                f"{BASE_URL}/transactions",
+                headers=headers,
+                json=new_tx,
+                timeout=TIMEOUT,
+            )
             success = response.status_code == 200
-            report.add_result("POST /transactions", response.status_code, success, "" if success else response.text)
+            report.add_result(
+                "POST /transactions",
+                response.status_code,
+                success,
+                "" if success else response.text,
+            )
             if success:
                 tx_id = response.json()["id"]
                 print(f"   [OK] Transaction created with ID: {tx_id}")
@@ -296,7 +377,12 @@ def test_transactions(headers: dict, account_id: str, category_id: str, report: 
                 "account_id": account_id,
                 "category_id": category_id,
             }
-            response = httpx.put(f"{BASE_URL}/transactions/{tx_id}", headers=headers, json=update_tx, timeout=TIMEOUT)
+            response = httpx.put(
+                f"{BASE_URL}/transactions/{tx_id}",
+                headers=headers,
+                json=update_tx,
+                timeout=TIMEOUT,
+            )
             success = response.status_code == 200
             report.add_result(
                 f"PUT /transactions/{tx_id}",
@@ -312,13 +398,17 @@ def test_transactions(headers: dict, account_id: str, category_id: str, report: 
     return tx_id
 
 
-def final_cleanup(headers: dict, tx_id: str, acc_id: str, cat_id: str, report: TestReport) -> None:
+def final_cleanup(
+    headers: dict, tx_id: str, acc_id: str, cat_id: str, report: TestReport
+) -> None:
     print("\n--- FINAL CLEANUP ---")
 
     # 1. Delete Transaction
     if tx_id:
         try:
-            response = httpx.delete(f"{BASE_URL}/transactions/{tx_id}", headers=headers, timeout=TIMEOUT)
+            response = httpx.delete(
+                f"{BASE_URL}/transactions/{tx_id}", headers=headers, timeout=TIMEOUT
+            )
             success = response.status_code == 200
             report.add_result(
                 f"DELETE /transactions/{tx_id}",
@@ -334,7 +424,9 @@ def final_cleanup(headers: dict, tx_id: str, acc_id: str, cat_id: str, report: T
     # 2. Delete Account
     if acc_id:
         try:
-            response = httpx.delete(f"{BASE_URL}/accounts/{acc_id}", headers=headers, timeout=TIMEOUT)
+            response = httpx.delete(
+                f"{BASE_URL}/accounts/{acc_id}", headers=headers, timeout=TIMEOUT
+            )
             success = response.status_code == 200
             report.add_result(
                 f"DELETE /accounts/{acc_id}",
@@ -350,7 +442,9 @@ def final_cleanup(headers: dict, tx_id: str, acc_id: str, cat_id: str, report: T
     # 3. Delete Category
     if cat_id:
         try:
-            response = httpx.delete(f"{BASE_URL}/categories/{cat_id}", headers=headers, timeout=TIMEOUT)
+            response = httpx.delete(
+                f"{BASE_URL}/categories/{cat_id}", headers=headers, timeout=TIMEOUT
+            )
             success = response.status_code == 200
             report.add_result(
                 f"DELETE /categories/{cat_id}",
@@ -365,7 +459,13 @@ def final_cleanup(headers: dict, tx_id: str, acc_id: str, cat_id: str, report: T
 
     # Ask for user deletion confirmation
     print("\n" + "-" * 30)
-    choice = input(f"Do you want to test DELETE /users and REMOVE {TEST_EMAIL} from Auth? (y/N): ").strip().lower()
+    choice = (
+        input(
+            f"Do you want to test DELETE /users and REMOVE {TEST_EMAIL} from Auth? (y/N): "
+        )
+        .strip()
+        .lower()
+    )
     if choice == "y":
         try:
             # 1. Delete from our public.user_profile (Backend Route)
