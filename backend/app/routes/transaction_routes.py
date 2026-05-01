@@ -20,7 +20,7 @@ async def getTransactions(
 
     try:
         return service.getTransactions(user_id)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -33,7 +33,7 @@ async def addTransaction(
 
     try:
         return service.addTransaction(user_id, transaction)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -47,7 +47,7 @@ async def updateTransaction(
 
     try:
         return service.updateTransaction(user_id, transaction_id, transaction)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -61,5 +61,5 @@ async def deleteTransaction(
     try:
         service.deleteTransaction(user_id, transaction_id)
         return {"message": "Transaction deleted successfully"}
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error

@@ -18,7 +18,7 @@ async def getUser(user_id: str = Depends(getCurrentUser), service: UserService =
 
     try:
         return service.getUser(user_id)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -29,7 +29,7 @@ async def addUser(
 
     try:
         return service.addUser(user_id, user)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -40,7 +40,7 @@ async def updateUser(
 
     try:
         return service.updateUser(user_id, user)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -50,5 +50,5 @@ async def deleteUser(user_id: str = Depends(getCurrentUser), service: UserServic
     try:
         service.deleteUser(user_id)
         return {"message": "User deleted successfully"}
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error

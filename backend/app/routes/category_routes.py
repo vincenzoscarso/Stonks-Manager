@@ -20,7 +20,7 @@ async def getCategories(
 
     try:
         return service.getCategories(user_id)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -31,7 +31,7 @@ async def addCategory(
 
     try:
         return service.addCategory(user_id, category)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -45,7 +45,7 @@ async def updateCategory(
 
     try:
         return service.updateCategory(user_id, category_id, category)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -57,5 +57,5 @@ async def deleteCategory(
     try:
         service.deleteCategory(user_id, category_id)
         return {"message": "Category deleted successfully"}
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error

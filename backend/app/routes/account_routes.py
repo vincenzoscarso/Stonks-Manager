@@ -20,7 +20,7 @@ async def getAccounts(
 
     try:
         return service.getAccounts(user_id)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -31,7 +31,7 @@ async def addAccount(
 
     try:
         return service.addAccount(user_id, account)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -45,7 +45,7 @@ async def updateAccount(
 
     try:
         return service.updateAccount(user_id, account_id, account)
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
@@ -57,5 +57,5 @@ async def deleteAccount(
     try:
         service.deleteAccount(user_id, account_id)
         return {"message": "Account deleted successfully"}
-    except (RuntimeError, ValueError) as error:
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
