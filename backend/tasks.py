@@ -29,8 +29,67 @@ def routeTest(c: Context):
 @task
 def clean(c: Context):
     """Deletes '*.pytest_cache' and every '__pycache__' folder inside this directory."""
+
     __clearScreen()
     __clean(c)
+
+
+@task
+def checkLeaks(c: Context):
+    """Checks Git history for any secrets defined in .env."""
+    __clearScreen()
+
+
+    __printMessageWithSeparator("SCANNING GIT HISTORY FOR SECRETS FROM .ENV")
+
+
+    env_path = ".env"
+    if not os.path.exists(env_path):
+        print(f"Error: {env_path} not found.")
+        return
+    secrets = {}
+    with open(env_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                value = value.strip("'\"")
+
+                # We only check values longer than 3 chars to avoid noise
+                if value and len(value) > 3:
+                    secrets[key] = value
+
+    if not secrets:
+        print("No significant secrets found in .env to check.")
+        return
+
+    found_any = False
+
+    for key, value in secrets.items():
+        print(f"Checking for {key}...", end=" ", flush=True)
+        # git log -S finds commits where the number of occurrences of 'value' changed
+        result = subprocess.run(
+            ["git", "log", "--all", "-S", value, "--oneline"],
+            capture_output=True,
+            text=True,
+        )
+
+        if result.stdout.strip():
+            print("\n" + "!" * 30)
+            print(f"POSSIBLE COMPROMISE: '{key}' found in history:")
+            print(result.stdout.strip())
+            print("!" * 30)
+            found_any = True
+        else:
+            print("Clean")
+    print(SEPARATOR)
+
+    if not found_any:
+        print("SUCCESS: No secrets from .env were found in Git history.")
+    else:
+        print("DANGER: Some secrets were found in your Git history!")
+        print("        Consider rotating these secrets and cleaning the history.")
+    print(SEPARATOR)
 
 
 ## helper functions ####################################################################################################
@@ -40,7 +99,6 @@ def __clean(c: Context):
     c.run("powershell Remove-Item -r '*.pytest_cache'", echo=True)
     c.run("powershell Remove-Item -r '*.pyc'", echo=True)
     __removePycacheFolders(".\\")
-
     __printMessageWithSeparator("Cleaned cache")
 
 
@@ -56,7 +114,6 @@ def __printMessageWithSeparator(msg: str):
     print(SEPARATOR)
     print(msg)
     print(SEPARATOR)
-
 
 def __clearScreen():
     subprocess.run("cls", shell=True)
