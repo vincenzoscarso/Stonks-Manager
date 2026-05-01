@@ -1,6 +1,9 @@
 *.env
+*.pyc
+*.pytest_cache
 TODO.md
 TODID.md
 .trae/
 .venv/
+__pycache__/
 res/instructions

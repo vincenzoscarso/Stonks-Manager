@@ -6,9 +6,7 @@ from typing import Any, List, Dict
 from supabase import create_client
 from backend.app.utils.get_env_variable import getEnvVariable
 
-# Configuration
 BASE_URL = "http://localhost:8000/api"
-# Using a fixed placeholder account to avoid rate limits on sign-up
 TEST_EMAIL = "REDACTED_EMAIL"
 TEST_PASSWORD = "REDACTED_PASSWORD"
 TIMEOUT = 10.0
