@@ -4,5 +4,4 @@ TODID.md
 .trae/
 .venv/
 res/instructions
-backend/print_jwt.py
 backend/tests/

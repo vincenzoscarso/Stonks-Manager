@@ -51,12 +51,26 @@ class AccountService:
         return Account.model_validate(first_row)
 
     def update_account(self, user_id: str, account_id: str, account: NewAccount) -> Account:
+        # Verify account belongs to user
+        account_check: APIResponse = (
+            self.supabase.table("account")
+            .select("id")
+            .eq("id", account_id)
+            .eq("user_profile_id", user_id)
+            .execute()
+        )
+        if not account_check.data:
+            raise ValueError("Account not found or does not belong to user")
+
         payload: Dict[str, Any] = {
             "name": account.name,
             "include_in_total": account.include_in_total,
         }
         response: APIResponse = (
-            self.supabase.table("account").update(payload).eq("id", account_id).eq("user_profile_id", user_id).execute()
+            self.supabase.table("account")
+            .update(payload)
+            .eq("id", account_id)
+            .execute()
         )
 
         error = getattr(response, "error", None)
@@ -65,16 +79,51 @@ class AccountService:
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
-            raise RuntimeError("Account not found or update failed")
+            # If update succeeded but no data returned, fetch it again
+            # This handles cases where returning=minimal is the default
+            return self.get_account_by_id(user_id, account_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Account.model_validate(first_row)
 
     def delete_account(self, user_id: str, account_id: str) -> None:
+        # Verify account belongs to user
+        account_check: APIResponse = (
+            self.supabase.table("account")
+            .select("id")
+            .eq("id", account_id)
+            .eq("user_profile_id", user_id)
+            .execute()
+        )
+        if not account_check.data:
+            raise ValueError("Account not found or does not belong to user")
+
         response: APIResponse = (
-            self.supabase.table("account").delete().eq("id", account_id).eq("user_profile_id", user_id).execute()
+            self.supabase.table("account")
+            .delete()
+            .eq("id", account_id)
+            .execute()
         )
 
         error = getattr(response, "error", None)
         if error:
             raise RuntimeError(str(error))
+
+    def get_account_by_id(self, user_id: str, account_id: str) -> Account:
+        response: APIResponse = (
+            self.supabase.table("account")
+            .select("*")
+            .eq("id", account_id)
+            .eq("user_profile_id", user_id)
+            .execute()
+        )
+
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
+
+        data = getattr(response, "data", None)
+        if not isinstance(data, list) or not data:
+            raise ValueError("Account not found")
+
+        return Account.model_validate(data[0])
