@@ -39,9 +39,7 @@ def checkLeaks(c: Context):
     """Checks Git history for any secrets defined in .env."""
     __clearScreen()
 
-
     __printMessageWithSeparator("SCANNING GIT HISTORY FOR SECRETS FROM .ENV")
-
 
     env_path = ".env"
     if not os.path.exists(env_path):
@@ -75,10 +73,10 @@ def checkLeaks(c: Context):
         )
 
         if result.stdout.strip():
-            print("\n" + "!" * 30)
+            print("\n\n" + "!" * 90)
             print(f"POSSIBLE COMPROMISE: '{key}' found in history:")
             print(result.stdout.strip())
-            print("!" * 30)
+            print("!" * 90 + "\n")
             found_any = True
         else:
             print("Clean")
@@ -114,6 +112,7 @@ def __printMessageWithSeparator(msg: str):
     print(SEPARATOR)
     print(msg)
     print(SEPARATOR)
+
 
 def __clearScreen():
     subprocess.run("cls", shell=True)
