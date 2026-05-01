@@ -18,6 +18,15 @@ def run(c: Context):
 
 
 @task
+def routeTest(c: Context):
+    """Runs a script that tests each route one by one. Requires human intervention."""
+
+    __clearScreen()
+
+    c.run("python -m tests.full_routes_test")
+
+
+@task
 def clean(c: Context):
     """Deletes '*.pytest_cache' and every '__pycache__' folder inside this directory."""
     __clearScreen()
