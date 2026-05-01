@@ -21,10 +21,6 @@ class UserService:
     def get_user(self, user_id: str) -> UserProfile:
         response: APIResponse = self.supabase.table("user_profile").select("*").eq("id", user_id).execute()
 
-        print("#################################################")
-        print(user_id)
-        print(f"response: {response}")
-
         error = getattr(response, "error", None)
         if error:
             raise RuntimeError(str(error))

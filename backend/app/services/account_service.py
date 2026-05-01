@@ -51,7 +51,7 @@ class AccountService:
         return Account.model_validate(first_row)
 
     def update_account(self, user_id: str, account_id: str, account: NewAccount) -> Account:
-        # Verify account belongs to user
+        # Verify account belongs to user before update
         account_check: APIResponse = (
             self.supabase.table("account")
             .select("id")
@@ -79,8 +79,7 @@ class AccountService:
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
-            # If update succeeded but no data returned, fetch it again
-            # This handles cases where returning=minimal is the default
+            # Handle case where Supabase doesn't return data on update
             return self.get_account_by_id(user_id, account_id)
 
         first_row = cast(Dict[str, Any], data[0])

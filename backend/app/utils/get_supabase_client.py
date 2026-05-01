@@ -14,16 +14,12 @@ def get_supabase_client(credentials: HTTPAuthorizationCredentials = Depends(secu
     supabase_url = get_required_env("SUPABASE_URL")
     supabase_key = get_required_env("SUPABASE_KEY")
 
-    # Create a new client instance for this request
     client = create_client(supabase_url, supabase_key)
 
     try:
-        # Set the token for PostgREST (RLS)
+        # Authenticate the PostgREST client for RLS
         client.postgrest.auth(token)
         
-        # We don't call set_session(token, "") here because it might fail 
-        # without a valid refresh token and it's not strictly necessary 
-        # for stateless API requests if we use get_user(token) later.
         return client
     except Exception as e:
         raise HTTPException(

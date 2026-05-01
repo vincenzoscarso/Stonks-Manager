@@ -19,6 +19,8 @@ class TransactionService:
         self.supabase: Client = create_client(supabase_url, supabase_key)
 
     def get_transactions(self, user_id: str) -> List[Transaction]:
+        # Filter transactions by the user_profile_id of the associated account.
+        # Uses a PostgREST inner join to filter on a related table's column.
         response: APIResponse = (
             self.supabase.table("transaction")
             .select("*, account!inner(user_profile_id)")
@@ -37,7 +39,7 @@ class TransactionService:
         return [Transaction.model_validate(row) for row in data]
 
     def add_transaction(self, user_id: str, transaction: NewTransaction) -> Transaction:
-        # Verify account belongs to user
+        # Security check: verify that the destination account belongs to the user
         account_response: APIResponse = (
             self.supabase.table("account")
             .select("id")
