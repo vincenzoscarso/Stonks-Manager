@@ -5,7 +5,7 @@ import json
 import time
 from typing import Any, List, Dict
 from supabase import create_client
-from backend.app.utils.get_env_variable import getEnvVariable
+from app.utils.get_env_variable import getEnvVariable
 
 BASE_URL = (
     getEnvVariable("API_BASE_URL")
