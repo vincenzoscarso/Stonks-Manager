@@ -23,7 +23,10 @@ class CategoryService:
         # Fetch both global categories (where user_profile_id is NULL) 
         # and categories specific to the current user.
         response: APIResponse = (
-            self.supabase.table("category").select("*").or_(f"user_profile_id.eq.{user_id},user_profile_id.is.null").execute()
+            self.supabase.table("category")
+            .select("*")
+            .or_(f"user_profile_id.eq.{user_id},user_profile_id.is.null")
+            .execute()
         )
 
         error = getattr(response, "error", None)

@@ -105,6 +105,17 @@ class TransactionService:
         return Transaction.model_validate(first_row)
 
     def delete_transaction(self, user_id: str, transaction_id: str) -> None:
+        # We check ownership before deletion because PostgREST doesn't support joins in DELETE.
+        check = (
+            self.supabase.table("transaction")
+            .select("id, account!inner(user_profile_id)")
+            .eq("id", transaction_id)
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+        if not check.data:
+            raise ValueError("Transaction not found or does not belong to user")
+
         response: APIResponse = self.supabase.table("transaction").delete().eq("id", transaction_id).execute()
 
         error = getattr(response, "error", None)

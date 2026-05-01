@@ -25,9 +25,9 @@ class UserService:
         if error:
             raise RuntimeError(str(error))
         
-
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
+            # If user profile is missing, suggest re-login to trigger the creation trigger
             raise RuntimeError("User not found")
 
         first_row = cast(Dict[str, Any], data[0])
