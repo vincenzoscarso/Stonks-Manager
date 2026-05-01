@@ -5,8 +5,14 @@ ENV_PATH = ".\\.env"
 
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
-def get_required_env(name: str) -> str:
+
+def getEnvVariable(name: str) -> str:
+    """
+    Utility that returns the specified environment variable.
+    """
+
     value = os.getenv(name)
     if value is None:
         raise EnvironmentError(f"Missing required environment variable: {name}")
+
     return value

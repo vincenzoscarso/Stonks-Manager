@@ -5,9 +5,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class NewAccount(BaseModel):
     name: str = Field(..., min_length=1, max_length=64)
     include_in_total: bool = True
+
 
 class Account(BaseModel):
     id: UUID

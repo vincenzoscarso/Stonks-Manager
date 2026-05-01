@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class NewTransaction(BaseModel):
     type: Literal["income", "expense"]
     description: Optional[str] = None
@@ -14,6 +15,7 @@ class NewTransaction(BaseModel):
     date: datetime
     account_id: UUID
     category_id: UUID
+
 
 class Transaction(BaseModel):
     id: UUID

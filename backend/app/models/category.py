@@ -6,9 +6,11 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class NewCategory(BaseModel):
     name: str = Field(..., min_length=1, max_length=64)
     description: Optional[str] = None
+
 
 class Category(BaseModel):
     id: UUID

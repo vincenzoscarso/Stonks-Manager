@@ -5,28 +5,29 @@ from typing import Any, Dict, List, cast, Optional
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
 from app.models.category import NewCategory, Category
-from app.utils.get_required_env import get_required_env
+from backend.app.utils.get_env_variable import getEnvVariable
 
 
 class CategoryService:
     def __init__(self, supabase_client: Any | None = None) -> None:
+        # Use provided client (e.g., authenticated client from FastAPI dependency injection)
         if supabase_client is not None:
             self.supabase = supabase_client
             return
 
-        supabase_url = get_required_env("SUPABASE_URL")
-        supabase_key = get_required_env("SUPABASE_KEY")
+        # Fallback: create a new client if none is provided.
+        # Useful for standalone scripts, background tasks, or testing where
+        # a request-scoped authenticated client is not available.
+        supabase_url = getEnvVariable("SUPABASE_URL")
+        supabase_key = getEnvVariable("SUPABASE_KEY")
 
         self.supabase: Client = create_client(supabase_url, supabase_key)
 
-    def get_categories(self, user_id: str) -> List[Category]:
-        # Fetch both global categories (where user_profile_id is NULL) 
+    def getCategories(self, user_id: str) -> List[Category]:
+        # Fetch both global categories (where user_profile_id is NULL)
         # and categories specific to the current user.
         response: APIResponse = (
-            self.supabase.table("category")
-            .select("*")
-            .or_(f"user_profile_id.eq.{user_id},user_profile_id.is.null")
-            .execute()
+            self.supabase.table("category").select("*").or_(f"user_profile_id.eq.{user_id},user_profile_id.is.null").execute()
         )
 
         error = getattr(response, "error", None)
@@ -39,7 +40,7 @@ class CategoryService:
 
         return [Category.model_validate(row) for row in data]
 
-    def add_category(self, user_id: str, category: NewCategory) -> Category:
+    def addCategory(self, user_id: str, category: NewCategory) -> Category:
         payload: Dict[str, Any] = {
             "name": category.name,
             "description": category.description,
@@ -58,28 +59,15 @@ class CategoryService:
         first_row = cast(Dict[str, Any], data[0])
         return Category.model_validate(first_row)
 
-    def update_category(self, user_id: str, category_id: str, category: NewCategory) -> Category:
-        # Verify category belongs to user
-        category_check: APIResponse = (
-            self.supabase.table("category")
-            .select("id")
-            .eq("id", category_id)
-            .eq("user_profile_id", user_id)
-            .execute()
-        )
-        if not category_check.data:
+    def updateCategory(self, user_id: str, category_id: str, category: NewCategory) -> Category:
+        if not self.doesCategoryBelongToUser(user_id, category_id):
             raise ValueError("Category not found or does not belong to user")
 
         payload: Dict[str, Any] = {
             "name": category.name,
             "description": category.description,
         }
-        response: APIResponse = (
-            self.supabase.table("category")
-            .update(payload)
-            .eq("id", category_id)
-            .execute()
-        )
+        response: APIResponse = self.supabase.table("category").update(payload).eq("id", category_id).execute()
 
         error = getattr(response, "error", None)
         if error:
@@ -88,35 +76,22 @@ class CategoryService:
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
             # If update succeeded but no data returned, fetch it again
-            return self.get_category_by_id(user_id, category_id)
+            return self.getCategoryById(user_id, category_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Category.model_validate(first_row)
 
-    def delete_category(self, user_id: str, category_id: str) -> None:
-        # Verify category belongs to user
-        category_check: APIResponse = (
-            self.supabase.table("category")
-            .select("id")
-            .eq("id", category_id)
-            .eq("user_profile_id", user_id)
-            .execute()
-        )
-        if not category_check.data:
+    def deleteCategory(self, user_id: str, category_id: str) -> None:
+        if not self.doesCategoryBelongToUser(user_id, category_id):
             raise ValueError("Category not found or does not belong to user")
 
-        response: APIResponse = (
-            self.supabase.table("category")
-            .delete()
-            .eq("id", category_id)
-            .execute()
-        )
+        response: APIResponse = self.supabase.table("category").delete().eq("id", category_id).execute()
 
         error = getattr(response, "error", None)
         if error:
             raise RuntimeError(str(error))
 
-    def get_category_by_id(self, user_id: str, category_id: str) -> Category:
+    def getCategoryById(self, user_id: str, category_id: str) -> Category:
         response: APIResponse = (
             self.supabase.table("category")
             .select("*")
@@ -134,3 +109,9 @@ class CategoryService:
             raise ValueError("Category not found")
 
         return Category.model_validate(data[0])
+
+    def doesCategoryBelongToUser(self, user_id: str, category_id: str):
+        response: APIResponse = (
+            self.supabase.table("category").select("id").eq("id", category_id).eq("user_profile_id", user_id).execute()
+        )
+        return bool(response.data)
