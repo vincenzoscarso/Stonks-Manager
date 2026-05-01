@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
-from backend.app.utils.get_env_variable import getEnvVariable
+from app.utils.get_env_variable import getEnvVariable
 
 security = HTTPBearer()
 

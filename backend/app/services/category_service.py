@@ -5,7 +5,7 @@ from typing import Any, Dict, List, cast, Optional
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
 from app.models.category import NewCategory, Category
-from backend.app.utils.get_env_variable import getEnvVariable
+from app.utils.get_env_variable import getEnvVariable
 
 
 class CategoryService:

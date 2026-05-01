@@ -4,7 +4,7 @@ from typing import Any, Dict, List, cast
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
 from app.models.account import NewAccount, Account
-from backend.app.utils.get_env_variable import getEnvVariable
+from app.utils.get_env_variable import getEnvVariable
 
 
 class AccountService:
