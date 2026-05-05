@@ -21,7 +21,7 @@ async def quickInsert(
         category_service = CategoryService(supabase)
         categories = category_service.getCategories(user_id)
 
-        categories_data = [{"id": str(c.id), "name": c.name, "description": c.description} for c in categories]
+        categories_data = [{"id": str(c.id), "name": c.name, "type": c.type, "description": c.description} for c in categories]
 
         ai_service = AIService()
         result = await ai_service.quickInsert(request.text, categories_data)
@@ -39,7 +39,7 @@ async def scanReceipt(
         category_service = CategoryService(supabase)
         categories = category_service.getCategories(user_id)
 
-        categories_data = [{"id": str(c.id), "name": c.name, "description": c.description} for c in categories]
+        categories_data = [{"id": str(c.id), "name": c.name, "type": c.type, "description": c.description} for c in categories]
 
         image_bytes = await file.read()
 

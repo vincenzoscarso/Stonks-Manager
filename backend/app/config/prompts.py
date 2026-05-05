@@ -4,9 +4,6 @@ now = datetime.now()
 current_year = now.year
 current_date = now.strftime("%Y-%m-%d")
 
-# DA AGGIUNGERE
-# If you can't determine a category use <default-category-id>
-
 __COMMON_RULES = f"""
 If the year is not specified, use the current year ({current_year}).
 If the day of the week is specified (e.g., 'Saturday'), calculate the correct date relative to today ({current_date}).
@@ -28,13 +25,13 @@ Categories:
 {{categories_json}}
 
 The JSON format must be:
-{{
+{{{{
     "type": "income" | "expense",
     "description": "a brief description",
     "amount": 0.00,
     "date": "YYYY-MM-DDTHH:MM:SS",
     "category_id": "CATEGORY-UUID"
-}}
+}}}}
 
 {__COMMON_RULES}
 """
@@ -49,13 +46,13 @@ Categories:
 {{categories_json}}
 
 The JSON format must be:
-{{
+{{{{
     "type": "expense",
     "description": "store name or concise description",
     "amount": 0.00,
     "date": "YYYY-MM-DDTHH:MM:SS",
     "category_id": "CATEGORY-UUID"
-}}
+}}}}
 
 {__COMMON_RULES}
 """
