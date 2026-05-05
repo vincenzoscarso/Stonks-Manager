@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
 from app.models.category import NewCategory, Category
@@ -88,14 +88,20 @@ class CategoryService:
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
             # If update succeeded but no data returned, fetch it again
-            return self.getCategoryById(user_id, category_id)
+            return self.getOrValidateCategoryById(user_id, category_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Category.model_validate(first_row)
 
-    def deleteCategory(self, user_id: str, category_id: str) -> None:
+    def deleteCategory(self, user_id: str, category_id: str, replace_with_category_id: Optional[str] = None) -> None:
         if not self.doesCategoryBelongToUser(user_id, category_id):
             raise ValueError("Category not found or does not belong to user")
+
+        if replace_with_category_id is not None:
+            if replace_with_category_id == category_id:
+                raise ValueError("Replacement category cannot be the same as the category being deleted")
+            else:
+                self.moveTransactionsToCategory(user_id, replace_with_category_id, category_id)
 
         response: APIResponse = self.supabase.table("category").delete().eq("id", category_id).execute()
 
@@ -103,7 +109,7 @@ class CategoryService:
         if error:
             raise RuntimeError(str(error))
 
-    def getCategoryById(self, user_id: str, category_id: str) -> Category:
+    def getOrValidateCategoryById(self, user_id: str, category_id: str) -> Category:
         response: APIResponse = (
             self.supabase.table("category")
             .select("*")
@@ -127,3 +133,18 @@ class CategoryService:
             self.supabase.table("category").select("id").eq("id", category_id).eq("user_profile_id", user_id).execute()
         )
         return bool(response.data)
+
+    def moveTransactionsToCategory(self, user_id: str, new_category_id: str, current_category_id: str) -> None:
+        self.getOrValidateCategoryById(user_id, new_category_id)
+
+        # Bulk-reassign all transactions from the current category to the new one
+        response: APIResponse = (
+            self.supabase.table("transaction")
+            .update({"category_id": new_category_id})
+            .eq("category_id", current_category_id)
+            .execute()
+        )
+
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(f"Failed to reassign transactions: {error}")

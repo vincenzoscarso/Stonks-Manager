@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Depends, Query
 
 from app.models.account import NewAccount, Account
 from app.services.account_service import AccountService
@@ -53,11 +55,16 @@ async def updateAccount(
 
 @router.delete("/accounts/{account_id}")
 async def deleteAccount(
-    account_id: str, user_id: str = Depends(getCurrentUser), service: AccountService = Depends(getAccountService)
+    account_id: str,
+    replace_with: Optional[str] = Query(None, description="ID of the account to reassign transactions to before deletion"),
+    user_id: str = Depends(getCurrentUser),
+    service: AccountService = Depends(getAccountService),
 ) -> dict:
 
     try:
-        service.deleteAccount(user_id, account_id)
+        service.deleteAccount(user_id, account_id, replace_with_account_id=replace_with)
         return {"message": "Account deleted successfully"}
-    except Exception as error:
+    except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error

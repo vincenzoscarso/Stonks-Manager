@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Depends, Query
 
 from app.models.category import NewCategory, Category
 from app.services.category_service import CategoryService
@@ -53,11 +55,16 @@ async def updateCategory(
 
 @router.delete("/categories/{category_id}")
 async def deleteCategory(
-    category_id: str, user_id: str = Depends(getCurrentUser), service: CategoryService = Depends(getCategoryService)
+    category_id: str,
+    replace_with: Optional[str] = Query(None, description="ID of the category to reassign transactions to before deletion"),
+    user_id: str = Depends(getCurrentUser),
+    service: CategoryService = Depends(getCategoryService),
 ) -> dict:
 
     try:
-        service.deleteCategory(user_id, category_id)
+        service.deleteCategory(user_id, category_id, replace_with_category_id=replace_with)
         return {"message": "Category deleted successfully"}
-    except Exception as error:
+    except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from postgrest.types import CountMethod
 from supabase import create_client, Client
@@ -82,14 +82,20 @@ class AccountService:
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
             # Handle case where Supabase doesn't return data on update
-            return self.getAccountById(user_id, account_id)
+            return self.getOrValidateAccountById(user_id, account_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Account.model_validate(first_row)
 
-    def deleteAccount(self, user_id: str, account_id: str) -> None:
+    def deleteAccount(self, user_id: str, account_id: str, replace_with_account_id: Optional[str] = None) -> None:
         if not self.doesAccountBelongToUser(user_id, account_id):
             raise ValueError("Account not found or does not belong to user")
+
+        if replace_with_account_id is not None:
+            if replace_with_account_id == account_id:
+                raise ValueError("Replacement account cannot be the same as the account being deleted")
+            else:
+                self.moveTransactionsToAccount(user_id, replace_with_account_id, account_id)
 
         response: APIResponse = self.supabase.table("account").delete().eq("id", account_id).execute()
 
@@ -97,7 +103,7 @@ class AccountService:
         if error:
             raise RuntimeError(str(error))
 
-    def getAccountById(self, user_id: str, account_id: str) -> Account:
+    def getOrValidateAccountById(self, user_id: str, account_id: str) -> Account:
         response: APIResponse = (
             self.supabase.table("account").select("*").eq("id", account_id).eq("user_profile_id", user_id).execute()
         )
@@ -117,3 +123,18 @@ class AccountService:
             self.supabase.table("account").select("id").eq("id", account_id).eq("user_profile_id", user_id).execute()
         )
         return bool(response.data)
+
+    def moveTransactionsToAccount(self, user_id: str, new_account_id: str, current_account_id: str) -> None:
+        self.getOrValidateAccountById(user_id, new_account_id)
+
+        # Bulk-reassign all transactions from the current account to the new one
+        response: APIResponse = (
+            self.supabase.table("transaction")
+            .update({"account_id": new_account_id})
+            .eq("account_id", current_account_id)
+            .execute()
+        )
+
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(f"Failed to reassign transactions: {error}")

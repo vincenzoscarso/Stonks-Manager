@@ -66,7 +66,7 @@ class TransactionService:
 
         category_service = CategoryService(self.supabase)
         try:
-            category_service.getCategoryById(user_id, str(transaction.category_id))
+            category_service.getOrValidateCategoryById(user_id, str(transaction.category_id))
         except ValueError:
             raise ValueError("Category not found or does not belong to user")
 
@@ -101,7 +101,7 @@ class TransactionService:
 
         category_service = CategoryService(self.supabase)
         try:
-            category_service.getCategoryById(user_id, str(transaction.category_id))
+            category_service.getOrValidateCategoryById(user_id, str(transaction.category_id))
         except ValueError:
             raise ValueError("Category not found or does not belong to user")
 
@@ -121,12 +121,12 @@ class TransactionService:
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
-            return self.getTransactionById(user_id, transaction_id)
+            return self.getOrValidateTransactionById(user_id, transaction_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Transaction.model_validate(first_row)
 
-    def getTransactionById(self, user_id: str, transaction_id: str) -> Transaction:
+    def getOrValidateTransactionById(self, user_id: str, transaction_id: str) -> Transaction:
         response: APIResponse = (
             self.supabase.table("transaction")
             .select("*, account!inner(user_profile_id)")
