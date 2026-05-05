@@ -5,7 +5,7 @@ current_year = now.year
 current_date = now.strftime("%Y-%m-%d")
 
 # DA AGGIUNGERE
-# If you can't determine a category use <default-category-id> 
+# If you can't determine a category use <default-category-id>
 
 __COMMON_RULES = f"""
 If the year is not specified, use the current year ({current_year}).
@@ -56,4 +56,3 @@ The JSON format must be:
 
 {__COMMON_RULES}
 """
-

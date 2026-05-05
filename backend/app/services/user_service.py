@@ -42,7 +42,7 @@ class UserService:
     def addUser(self, user_id: str, user_profile: NewUserProfile) -> UserProfile:
         # Check limit
         response: APIResponse = self.supabase.table("user_profile").select("id", count=CountMethod.exact).execute()
-        amount_of_users: int = cast(int, response.count) 
+        amount_of_users: int = cast(int, response.count)
 
         if amount_of_users is not None and amount_of_users >= USER_LIMIT:
             raise ValueError(f"Maximum number of users ({USER_LIMIT}) reached")

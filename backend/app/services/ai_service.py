@@ -24,7 +24,9 @@ class AIService:
         self.SCAN_RECEIPT_TIMEOUT = AI_SCAN_RECEIPT_TIMEOUT
 
     def _format_categories(self, categories: List[Dict[str, Any]]) -> str:
-        simplified_categories = [{"id": str(c["id"]), "name": c["name"], "description": c.get("description", "")} for c in categories]
+        simplified_categories = [
+            {"id": str(c["id"]), "name": c["name"], "description": c.get("description", "")} for c in categories
+        ]
         return json.dumps(simplified_categories, indent=2)
 
     async def _call_mistral_api(self, payload: Dict[str, Any], timeout: float) -> Dict[str, Any]:

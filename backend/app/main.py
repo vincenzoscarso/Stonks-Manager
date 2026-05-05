@@ -7,6 +7,7 @@ from app.routes.transaction_routes import router as transaction_router
 from app.routes.ai_routes import router as ai_router
 from app.utils.rate_limiter import RateLimitMiddleware
 
+
 def createApp() -> FastAPI:
     app = FastAPI(title="Stonks Manager Backend")
     app.add_middleware(RateLimitMiddleware)
