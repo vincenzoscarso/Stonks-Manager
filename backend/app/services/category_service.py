@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-
-from typing import Any, Dict, List, cast, Optional
+from typing import Any, Dict, List, cast
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
 from app.models.category import NewCategory, Category
 from app.utils.get_env_variable import getEnvVariable
+from postgrest.types import CountMethod
+from app.config.configuration import PER_USER_CATEGORY_LIMIT
 
 
 class CategoryService:
@@ -41,6 +42,15 @@ class CategoryService:
         return [Category.model_validate(row) for row in data]
 
     def addCategory(self, user_id: str, category: NewCategory) -> Category:
+        # Check limit: max categories (excluding global ones)
+        response: APIResponse = (
+            self.supabase.table("category").select("id", count=CountMethod.exact).eq("user_profile_id", user_id).execute()
+        )
+        amount_of_user_categories = response.count
+
+        if amount_of_user_categories is not None and amount_of_user_categories >= PER_USER_CATEGORY_LIMIT:
+            raise ValueError(f"Maximum number of categories ({PER_USER_CATEGORY_LIMIT}) reached")
+
         payload: Dict[str, Any] = {
             "name": category.name,
             "description": category.description,

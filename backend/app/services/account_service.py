@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, cast
 from postgrest.base_request_builder import APIResponse
+from postgrest.types import CountMethod
 from supabase import create_client, Client
 from app.models.account import NewAccount, Account
 from app.utils.get_env_variable import getEnvVariable
+from app.config.configuration import PER_USER_ACCOUNT_LIMIT
 
 
 class AccountService:
@@ -36,6 +38,15 @@ class AccountService:
         return [Account.model_validate(row) for row in data]
 
     def addAccount(self, user_id: str, account: NewAccount) -> Account:
+        # Check limit
+        response: APIResponse = (
+            self.supabase.table("account").select("id", count=CountMethod.exact).eq("user_profile_id", user_id).execute()
+        )
+        amount_of_user_accounts = response.count
+
+        if amount_of_user_accounts is not None and amount_of_user_accounts >= PER_USER_ACCOUNT_LIMIT:
+            raise ValueError(f"Maximum number of accounts ({PER_USER_ACCOUNT_LIMIT}) reached")
+
         payload: Dict[str, Any] = {
             "name": account.name,
             "include_in_total": account.include_in_total,

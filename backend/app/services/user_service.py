@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Dict, cast
 from postgrest.base_request_builder import APIResponse
+from postgrest.types import CountMethod
 from supabase import create_client, Client
 from app.models.user import NewUserProfile, UserProfile
 from app.utils.get_env_variable import getEnvVariable
+from app.config.configuration import USER_LIMIT
 
 
 class UserService:
@@ -38,6 +40,13 @@ class UserService:
         return UserProfile.model_validate(first_row)
 
     def addUser(self, user_id: str, user_profile: NewUserProfile) -> UserProfile:
+        # Check limit
+        response: APIResponse = self.supabase.table("user_profile").select("id", count=CountMethod.exact).execute()
+        amount_of_users: int = cast(int, response.count) 
+
+        if amount_of_users is not None and amount_of_users >= USER_LIMIT:
+            raise ValueError(f"Maximum number of users ({USER_LIMIT}) reached")
+
         payload: Dict[str, Any] = {
             "id": user_id,
             "display_name": user_profile.display_name,
@@ -69,7 +78,7 @@ class UserService:
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
-            raise RuntimeError("User not found or update failed")
+            return self.getUser(user_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return UserProfile.model_validate(first_row)

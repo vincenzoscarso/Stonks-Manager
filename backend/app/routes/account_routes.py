@@ -31,8 +31,10 @@ async def addAccount(
 
     try:
         return service.addAccount(user_id, account)
-    except Exception as error:
+    except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
 
 
 @router.put("/accounts/{account_id}", response_model=Account)

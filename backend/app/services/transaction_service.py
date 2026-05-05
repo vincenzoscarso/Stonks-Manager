@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, cast, Optional
+from typing import Any, Dict, List, cast
 from postgrest.base_request_builder import APIResponse
+from postgrest.types import CountMethod
 from supabase import create_client, Client
 from app.models.transaction import NewTransaction, Transaction
 from app.utils.get_env_variable import getEnvVariable
 from app.services.account_service import AccountService
+from app.services.category_service import CategoryService
+from app.config.configuration import PER_USER_TRANSACTIONS_LIMIT
 
 
 class TransactionService:
@@ -44,10 +47,28 @@ class TransactionService:
         return [Transaction.model_validate(row) for row in data]
 
     def addTransaction(self, user_id: str, transaction: NewTransaction) -> Transaction:
+        # Check limit
+        response: APIResponse = (
+            self.supabase.table("transaction")
+            .select("id, account!inner(user_profile_id)", count=CountMethod.exact)
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+        amount_of_user_transactions = response.count
+
+        if amount_of_user_transactions is not None and amount_of_user_transactions >= PER_USER_TRANSACTIONS_LIMIT:
+            raise ValueError(f"Maximum number of transactions ({PER_USER_TRANSACTIONS_LIMIT}) reached")
+
         # Security check: verify that the destination account belongs to the user
         account_service = AccountService(self.supabase)
         if not account_service.doesAccountBelongToUser(user_id, str(transaction.account_id)):
             raise ValueError("Account not found or does not belong to user")
+
+        category_service = CategoryService(self.supabase)
+        try:
+            category_service.getCategoryById(user_id, str(transaction.category_id))
+        except ValueError:
+            raise ValueError("Category not found or does not belong to user")
 
         payload: Dict[str, Any] = {
             "type": transaction.type,
@@ -78,6 +99,12 @@ class TransactionService:
         if not account_service.doesAccountBelongToUser(user_id, str(transaction.account_id)):
             raise ValueError("Target account not found or does not belong to user")
 
+        category_service = CategoryService(self.supabase)
+        try:
+            category_service.getCategoryById(user_id, str(transaction.category_id))
+        except ValueError:
+            raise ValueError("Category not found or does not belong to user")
+
         payload: Dict[str, Any] = {
             "type": transaction.type,
             "description": transaction.description,
@@ -94,10 +121,29 @@ class TransactionService:
 
         data = getattr(response, "data", None)
         if not isinstance(data, list) or not data:
-            raise RuntimeError("Transaction not found or update failed")
+            return self.getTransactionById(user_id, transaction_id)
 
         first_row = cast(Dict[str, Any], data[0])
         return Transaction.model_validate(first_row)
+
+    def getTransactionById(self, user_id: str, transaction_id: str) -> Transaction:
+        response: APIResponse = (
+            self.supabase.table("transaction")
+            .select("*, account!inner(user_profile_id)")
+            .eq("id", transaction_id)
+            .eq("account.user_profile_id", user_id)
+            .execute()
+        )
+
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(str(error))
+
+        data = getattr(response, "data", None)
+        if not isinstance(data, list) or not data:
+            raise ValueError("Transaction not found")
+
+        return Transaction.model_validate(data[0])
 
     def deleteTransaction(self, user_id: str, transaction_id: str) -> None:
         if not self.doesTransactionBelongToUser(user_id, transaction_id):

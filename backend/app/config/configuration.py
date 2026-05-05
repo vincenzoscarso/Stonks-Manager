@@ -1,0 +1,17 @@
+# DB Elements
+USER_LIMIT: int = 10000
+PER_USER_ACCOUNT_LIMIT: int = 32
+PER_USER_CATEGORY_LIMIT: int = 64
+PER_USER_TRANSACTIONS_LIMIT: int = 10000
+
+# Rate limits
+RATE_LIMIT_GENERIC: int = 60
+RATE_LIMIT_AI: int = 3
+RATE_LIMIT_WINDOW_SECONDS: int = 60
+
+# AI Service
+AI_API_URL: str = "mistral-ai-api-link"
+AI_TEXT_MODEL: str = "text-model"
+AI_VISION_MODEL: str = "vision-model"
+AI_QUICK_INSERT_TIMEOUT: float = 30.0
+AI_SCAN_RECEIPT_TIMEOUT: float = 60.0

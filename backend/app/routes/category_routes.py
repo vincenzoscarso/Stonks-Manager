@@ -31,8 +31,10 @@ async def addCategory(
 
     try:
         return service.addCategory(user_id, category)
-    except Exception as error:
+    except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
 
 
 @router.put("/categories/{category_id}", response_model=Category)
