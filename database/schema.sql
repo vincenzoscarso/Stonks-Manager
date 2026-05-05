@@ -175,4 +175,4 @@ CREATE POLICY "Users can manage their own profile." ON public.user_profile FOR A
 CREATE POLICY "Users can manage their own categories." ON public.category FOR ALL TO authenticated USING ( (SELECT auth.uid()) = user_profile_id ) WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
 CREATE POLICY "Users can manage their own accounts." ON public.account FOR ALL TO authenticated USING ( (SELECT auth.uid()) = user_profile_id ) WITH CHECK ( (SELECT auth.uid()) = user_profile_id );
 CREATE POLICY "Users can manage transactions for their accounts." ON public.transaction FOR ALL TO authenticated USING ( account_id IN (SELECT id FROM public.account WHERE user_profile_id = (SELECT auth.uid())) ) WITH CHECK ( account_id IN (SELECT id FROM public.account WHERE user_profile_id = (SELECT auth.uid())) );
-
+CREATE POLICY "Users can read global categories." ON public.category FOR SELECT TO authenticated USING ( user_profile_id IS NULL );
