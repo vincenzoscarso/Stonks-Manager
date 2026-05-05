@@ -3,7 +3,7 @@
 *.pytest_cache
 TODO.md
 TODID.md
-.trae/
+.agents/
 .venv/
 __pycache__/
 res/instructions
