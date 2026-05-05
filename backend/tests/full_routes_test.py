@@ -1,6 +1,5 @@
 import httpx
 import os
-import sys
 import time
 from supabase import create_client
 from app.utils.get_env_variable import getEnvVariable
@@ -12,17 +11,27 @@ TEST_EMAIL = getEnvVariable("TEST_USER_EMAIL")
 TEST_PASSWORD = getEnvVariable("TEST_USER_PASSWORD")
 TIMEOUT = 10.0
 
-def get_auth_token():
+
+def get_auth_token() -> str:
     supabase = create_client(getEnvVariable("SUPABASE_URL"), getEnvVariable("SUPABASE_KEY"))
     try:
         res = supabase.auth.sign_in_with_password({"email": TEST_EMAIL, "password": TEST_PASSWORD})
-        return str(res.session.access_token) # type: ignore
+        return str(res.session.access_token)  # type: ignore
     except:
         res = supabase.auth.sign_up({"email": TEST_EMAIL, "password": TEST_PASSWORD})
-        if not res.session: res = supabase.auth.sign_in_with_password({"email": TEST_EMAIL, "password": TEST_PASSWORD})
-        return str(res.session.access_token) # type: ignore
+        if not res.session:
+            res = supabase.auth.sign_in_with_password({"email": TEST_EMAIL, "password": TEST_PASSWORD})
+        return str(res.session.access_token)  # type: ignore
+
 
 def main():
+    should_only_get_token = input("Do you only want JWT? (y/N): ").lower() == "y"
+
+    if should_only_get_token:
+        print("JWT:")
+        print(get_auth_token())
+        return
+
     should_cleanup = input("Perform final cleanup (delete items)? (y/N): ").lower() == "y"
     should_delete_user = input(f"Remove {TEST_EMAIL} from Auth? (y/N): ").lower() == "y"
     token = get_auth_token()
@@ -33,6 +42,7 @@ def main():
 
     # -- User Routes --
     print("\n[User]")
+
     def test_route(method, url, **kwargs):
         try:
             resp = getattr(client, method)(f"{BASE_URL}{url}", **kwargs)
@@ -70,7 +80,14 @@ def main():
     print("\n[Transaction]")
     test_route("get", "/transactions")
     if ids["acc"] and ids["cat"]:
-        payload = {"type": "expense", "description": "Test", "amount": 10.0, "date": "2026-05-01T12:00:00Z", "account_id": ids["acc"], "category_id": ids["cat"]}
+        payload = {
+            "type": "expense",
+            "description": "Test",
+            "amount": 10.0,
+            "date": "2026-05-01T12:00:00Z",
+            "account_id": ids["acc"],
+            "category_id": ids["cat"],
+        }
         resp = test_route("post", "/transactions", json=payload)
         if resp and resp.status_code == 200:
             ids["tx"] = resp.json().get("id")
@@ -82,12 +99,17 @@ def main():
     # -- DELETE for all routes --
     print("\n--- Cleanup (DELETE) ---")
     if should_cleanup:
-        if ids["tx"]: test_route("delete", f"/transactions/{ids['tx']}")
-        if ids["acc"]: test_route("delete", f"/accounts/{ids['acc']}")
-        if ids["cat"]: test_route("delete", f"/categories/{ids['cat']}")
-    if should_delete_user: test_route("delete", "/users")
+        if ids["tx"]:
+            test_route("delete", f"/transactions/{ids['tx']}")
+        if ids["acc"]:
+            test_route("delete", f"/accounts/{ids['acc']}")
+        if ids["cat"]:
+            test_route("delete", f"/categories/{ids['cat']}")
+    if should_delete_user:
+        test_route("delete", "/users")
 
     print("\nTests completed.")
+
 
 if __name__ == "__main__":
     main()
