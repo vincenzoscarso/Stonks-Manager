@@ -25,6 +25,7 @@ account_id,transaction,Attributo,,Collega l'entità 'transaction' a 'account'
 category_id,transaction,Attributo,,Collega l'entità 'transaction' a 'category'
 id,category,Attributo,,Identificativo di una categoria
 name,category,Attributo,,Nome visualizzato di una categoria
+type,category,Attributo,,Tipo della categoria
 description,category,Attributo,,"Breve descrizione di una categoria. Utile all'AI per la categorizzazione intelligente, ma opzionale"
 created_at,category,Attributo,,Data e ora di creazione del record
 updated_at,category,Attributo,,Data e ora dell'ultimo aggiornamento del record

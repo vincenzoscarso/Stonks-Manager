@@ -15,6 +15,7 @@ CREATE SCHEMA IF NOT EXISTS internal;
 CREATE EXTENSION IF NOT EXISTS citext SCHEMA extensions;
 
 CREATE TYPE public.transaction_type AS ENUM ('income', 'expense');
+CREATE TYPE public.category_type AS ENUM ('income', 'expense');
 
 -- ==========================================
 -- 2. AUTOMATION FUNCTIONS
@@ -67,6 +68,7 @@ FOR EACH ROW EXECUTE FUNCTION internal.update_updated_at_column();
 CREATE TABLE public.category (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(64) NOT NULL,
+    type public.category_type NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,6 +77,7 @@ CREATE TABLE public.category (
 );
 
 CREATE INDEX idx_category_user_id ON public.category(user_profile_id);
+CREATE INDEX idx_category_predefined ON public.category(name) WHERE user_profile_id IS NULL;
 
 CREATE TRIGGER tr_category_updated_at
 BEFORE UPDATE ON public.category

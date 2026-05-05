@@ -14,12 +14,16 @@ If you cannot determine a value return null.
 If you can't determine a specific category, try to find the best match based on description and name, or return null if uncertain.
 """
 
+__COMMON_CATEGORY_RULES = f"""
+Here is the list of available categories. Each category has an 'id', 'name', 'type' (income or expense), and 'description'.
+Use the 'type', 'description', and 'name' to choose the most appropriate category. The category type MUST match the transaction type. Return ONLY the 'id' in the JSON.
+"""
+
 TEXT_PROMPT = f"""
 You are an expert financial management assistant. Your task is to extract information from a sentence and return a valid JSON for creating a transaction.
 Transactions can be of type 'income' or 'expense'.
 
-Here is the list of available categories. Each category has an 'id', 'name', and 'description'.
-Use the 'description' and 'name' to choose the most appropriate category, but return ONLY the 'id' in the JSON.
+{__COMMON_CATEGORY_RULES}
 Categories:
 {{categories_json}}
 
@@ -37,11 +41,10 @@ The JSON format must be:
 
 
 VISION_PROMPT = f"""
-Analyze the image of this receipt and extract the details for a transaction.
+You are an expert financial management assistant. Your task is to analyze the image of a receipt and extract the details for a transaction.
 Return a valid JSON.
 
-Here is the list of available categories. Each category has an 'id', 'name', and 'description'.
-Use the 'description' and 'name' to choose the most appropriate category, but return ONLY the 'id' in the JSON.
+{__COMMON_CATEGORY_RULES}
 Categories:
 {{categories_json}}
 

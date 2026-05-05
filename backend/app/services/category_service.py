@@ -53,6 +53,7 @@ class CategoryService:
 
         payload: Dict[str, Any] = {
             "name": category.name,
+            "type": category.type,
             "description": category.description,
             "user_profile_id": user_id,
         }
@@ -75,6 +76,7 @@ class CategoryService:
 
         payload: Dict[str, Any] = {
             "name": category.name,
+            "type": category.type,
             "description": category.description,
         }
         response: APIResponse = self.supabase.table("category").update(payload).eq("id", category_id).execute()
