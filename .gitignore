@@ -3,6 +3,7 @@
 *.pytest_cache
 TODO.md
 TODID.md
+TODO-all.md
 .agents/
 .venv/
 __pycache__/
