@@ -38,7 +38,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path == "/config.js":
             self._serve_config_js()
         else:
-            super().do_GET()
+            try:
+                super().do_GET()
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+                pass # Ignora gli errori di disconnessione improvvisa del client
+
+    def handle(self):
+        try:
+            super().handle()
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            pass # Ignora gli errori se la connessione viene chiusa prima del completamento
 
     def _serve_config_js(self):
         url, key = load_config()
