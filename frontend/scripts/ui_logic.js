@@ -1,5 +1,5 @@
 /**
- * ui_logic.js — Logica centralizzata per l'interfaccia (Modal, Errori, Validazioni)
+ * ui_logic.js — Logica centralizzata per l'interfaccia (Modal Transazione, Errori, Validazioni)
  */
 
 // Stato globale del modal: "add" o "edit"
@@ -14,14 +14,14 @@ function openTransactionModal(mode = "add", data = null) {
     currentModalMode = mode;
     const modal = document.getElementById("transaction-modal");
     const title = document.getElementById("modal-title");
-    
+
     // Reset errori e campi
     clearModalFields();
     clearFieldErrors();
     document.getElementById("modal-error").style.display = "none";
 
     title.innerText = (mode === "edit") ? "Modifica Transazione" : "Nuova Transazione";
-    
+
     // Carica conti e categorie nei select del modal
     renderModalSelects();
 
@@ -68,10 +68,10 @@ function clearModalFields() {
 function updateModalCategories() {
     const type = document.querySelector('input[name="modal-tx-type"]:checked').value;
     const categorySelect = document.getElementById("modal-tx-category");
-    
+
     // Usa la funzione globale di categories.js per filtrare
     const filtered = window.allCategories.filter(c => c.type === type);
-    
+
     categorySelect.innerHTML = '<option value="">-- Seleziona --</option>';
     filtered.forEach(c => {
         const opt = document.createElement("option");
@@ -102,10 +102,10 @@ function validateModalData() {
     clearFieldErrors();
     let isValid = true;
 
-    const amount = document.getElementById("modal-tx-amount").value;
-    const date = document.getElementById("modal-tx-date").value;
-    const category = document.getElementById("modal-tx-category").value;
-    const account = document.getElementById("modal-tx-account").value;
+    const amount      = document.getElementById("modal-tx-amount").value;
+    const date        = document.getElementById("modal-tx-date").value;
+    const category    = document.getElementById("modal-tx-category").value;
+    const account     = document.getElementById("modal-tx-account").value;
     const description = document.getElementById("modal-tx-description").value;
 
     if (!amount || amount <= 0) {
@@ -165,21 +165,10 @@ function updateCharCount() {
     document.getElementById("char-count").innerText = len;
 }
 
-function updateAiCharCount() {
-    const el = document.getElementById("quick-insert-text");
-    if (el) {
-        const len = el.value.length;
-        document.getElementById("ai-char-count").innerText = len;
-    }
-}
-
-// Event listener per il conteggio caratteri
+// Event listener per il conteggio caratteri della descrizione transazione
 document.addEventListener("DOMContentLoaded", () => {
     const desc = document.getElementById("modal-tx-description");
     if (desc) desc.addEventListener("input", updateCharCount);
-
-    const aiText = document.getElementById("quick-insert-text");
-    if (aiText) aiText.addEventListener("input", updateAiCharCount);
 });
 
 /**
@@ -190,11 +179,11 @@ async function saveTransactionFromModal() {
 
     const id = document.getElementById("modal-tx-id").value;
     const data = {
-        type: document.querySelector('input[name="modal-tx-type"]:checked').value,
-        amount: parseFloat(document.getElementById("modal-tx-amount").value),
-        date: document.getElementById("modal-tx-date").value,
+        type:        document.querySelector('input[name="modal-tx-type"]:checked').value,
+        amount:      parseFloat(document.getElementById("modal-tx-amount").value),
+        date:        document.getElementById("modal-tx-date").value,
         category_id: document.getElementById("modal-tx-category").value,
-        account_id: document.getElementById("modal-tx-account").value,
+        account_id:  document.getElementById("modal-tx-account").value,
         description: document.getElementById("modal-tx-description").value || null
     };
 
@@ -206,8 +195,8 @@ async function saveTransactionFromModal() {
         }
         closeTransactionModal();
         // Aggiorna dashboard e storico
-        loadAccounts(); 
-        loadTransactions(); 
+        loadAccounts();
+        loadTransactions();
     } catch (err) {
         const modalErr = document.getElementById("modal-error");
         modalErr.innerText = "Errore nel salvataggio: " + err.message;

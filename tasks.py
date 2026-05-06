@@ -15,7 +15,7 @@ def run(c: Context):
 
     __clearScreen()
 
-    c.run(f"uvicorn backend.app.main:app --reload")
+    c.run(f"uvicorn backend.app.main:app --host 0.0.0.0 --reload")
 
 
 @task

@@ -35,12 +35,32 @@ function renderAccountsList() {
         div.className = "account-item";
         div.dataset.id = account.id;
 
-        div.innerHTML =
+        // Colonna info
+        var infoDiv = document.createElement("div");
+        infoDiv.className = "account-item-info";
+        infoDiv.innerHTML =
             "<strong>" + escapeHtml(account.name) + "</strong>" +
             " — Saldo: <span class='balance'>" + formatCurrency(balance) + "</span>" +
-            " [incluso nel totale: " + (account.include_in_total ? "Sì" : "No") + "]" +
-            " <button onclick=\"openEditAccount('" + account.id + "')\">Modifica</button>" +
-            " <button onclick=\"openDeleteAccount('" + account.id + "')\">Elimina</button>";
+            " <small>[incluso nel totale: " + (account.include_in_total ? "Sì" : "No") + "]</small>";
+
+        // Colonna azioni
+        var actionsDiv = document.createElement("div");
+        actionsDiv.className = "account-item-actions";
+
+        var editBtn = document.createElement("button");
+        editBtn.className = "btn-secondary";
+        editBtn.textContent = "Modifica";
+        editBtn.onclick = function () { openEditAccount(account.id); };
+
+        var delBtn = document.createElement("button");
+        delBtn.className = "btn-danger";
+        delBtn.textContent = "Elimina";
+        delBtn.onclick = function () { openDeleteAccount(account.id); };
+
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(delBtn);
+        div.appendChild(infoDiv);
+        div.appendChild(actionsDiv);
 
         container.appendChild(div);
     });
@@ -143,7 +163,7 @@ async function submitNewAccount() {
     }
 }
 
-// ── MODIFICA CONTO ────────────────────────────────────────────────────────────
+// ── MODIFICA CONTO (modal overlay) ───────────────────────────────────────────
 
 function openEditAccount(accountId) {
     var account = allAccounts.find(function (a) { return a.id === accountId; });
@@ -152,7 +172,11 @@ function openEditAccount(accountId) {
     document.getElementById("edit-account-id").value = account.id;
     document.getElementById("edit-account-name").value = account.name;
     document.getElementById("edit-account-include").checked = account.include_in_total;
-    document.getElementById("edit-account-form").style.display = "block";
+    clearError("account-edit-error");
+    var errName = document.getElementById("err-edit-account-name");
+    if (errName) { errName.textContent = ""; errName.style.display = "none"; }
+
+    document.getElementById("account-edit-modal").style.display = "flex";
 }
 
 async function submitEditAccount() {
@@ -160,27 +184,29 @@ async function submitEditAccount() {
     var name = document.getElementById("edit-account-name").value.trim();
     var includeInTotal = document.getElementById("edit-account-include").checked;
 
+    clearError("account-edit-error");
+
     if (!name) {
-        showError("accounts-error", "Il nome del conto è obbligatorio.");
+        var errName = document.getElementById("err-edit-account-name");
+        if (errName) { errName.textContent = "Il nome del conto è obbligatorio."; errName.style.display = "block"; }
         return;
     }
 
     try {
         await apiUpdateAccount(id, name, includeInTotal);
-        document.getElementById("edit-account-form").style.display = "none";
-        clearError("accounts-error");
+        document.getElementById("account-edit-modal").style.display = "none";
         await loadAccounts();
         updateDashboard();
     } catch (err) {
-        showError("accounts-error", err.message);
+        showError("account-edit-error", err.message);
     }
 }
 
 function cancelEditAccount() {
-    document.getElementById("edit-account-form").style.display = "none";
+    document.getElementById("account-edit-modal").style.display = "none";
 }
 
-// ── ELIMINA CONTO ─────────────────────────────────────────────────────────────
+// ── ELIMINA CONTO (modal overlay) ─────────────────────────────────────────────
 
 function openDeleteAccount(accountId) {
     var account = allAccounts.find(function (a) { return a.id === accountId; });
@@ -188,6 +214,7 @@ function openDeleteAccount(accountId) {
 
     document.getElementById("delete-account-id").value = accountId;
     document.getElementById("delete-account-name-label").textContent = account.name;
+    clearError("account-delete-error");
 
     // Popola il select di sostituzione con gli altri conti
     var sel = document.getElementById("delete-account-replace");
@@ -201,25 +228,26 @@ function openDeleteAccount(accountId) {
         }
     });
 
-    document.getElementById("delete-account-form").style.display = "block";
+    document.getElementById("account-delete-modal").style.display = "flex";
 }
 
 async function submitDeleteAccount() {
     var id = document.getElementById("delete-account-id").value;
     var replaceWith = document.getElementById("delete-account-replace").value || null;
 
+    clearError("account-delete-error");
+
     try {
         await apiDeleteAccount(id, replaceWith);
-        document.getElementById("delete-account-form").style.display = "none";
-        clearError("accounts-error");
+        document.getElementById("account-delete-modal").style.display = "none";
         await loadAccounts();
         await loadTransactions();
         updateDashboard();
     } catch (err) {
-        showError("accounts-error", err.message);
+        showError("account-delete-error", err.message);
     }
 }
 
 function cancelDeleteAccount() {
-    document.getElementById("delete-account-form").style.display = "none";
+    document.getElementById("account-delete-modal").style.display = "none";
 }

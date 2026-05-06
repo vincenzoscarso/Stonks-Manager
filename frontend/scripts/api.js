@@ -31,14 +31,24 @@ async function apiFetch(path, method, body) {
         options.body = JSON.stringify(body);
     }
 
-    var response = await fetch(BACKEND_URL + path, options);
+    var response;
+    try {
+        response = await fetch(BACKEND_URL + path, options);
+    } catch (networkErr) {
+        // Errore di rete (server offline, timeout, CORS, ecc.)
+        throw new Error("Impossibile contattare il server. Controlla la connessione.");
+    }
 
     if (!response.ok) {
         var errorData = await response.json().catch(function () { return {}; });
-        
-        // Gestione specifica Rate Limit
+
+        // Rate Limit
         if (response.status === 429) {
-            throw new Error("Troppe richieste! Riprova tra un minuto.");
+            throw new Error("⚠️ Limite di richieste raggiunto. Riprova tra qualche minuto.");
+        }
+        // Timeout / servizio AI non disponibile
+        if (response.status === 503 || response.status === 504) {
+            throw new Error("Servizio AI non disponibile, riprova tra qualche istante.");
         }
 
         var message = (errorData.detail) ? errorData.detail : "Errore " + response.status;
@@ -65,10 +75,25 @@ async function apiFetchFile(path, formData) {
         options.headers["Authorization"] = "Bearer " + token;
     }
 
-    var response = await fetch(BACKEND_URL + path, options);
+    var response;
+    try {
+        response = await fetch(BACKEND_URL + path, options);
+    } catch (networkErr) {
+        throw new Error("Impossibile contattare il server. Controlla la connessione.");
+    }
 
     if (!response.ok) {
         var errorData = await response.json().catch(function () { return {}; });
+
+        // Rate Limit
+        if (response.status === 429) {
+            throw new Error("⚠️ Limite di richieste raggiunto. Riprova tra qualche minuto.");
+        }
+        // Timeout / servizio AI non disponibile
+        if (response.status === 503 || response.status === 504) {
+            throw new Error("Servizio AI non disponibile, riprova tra qualche istante.");
+        }
+
         var message = (errorData.detail) ? errorData.detail : "Errore " + response.status;
         throw new Error(message);
     }

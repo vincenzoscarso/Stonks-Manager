@@ -63,7 +63,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    # Usa ThreadingTCPServer invece di TCPServer per supportare richieste parallele 
+    # ed evitare che il browser blocchi il server
+    class ThreadingServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+        pass
+    
+    with ThreadingServer(("", PORT), Handler) as httpd:
         print(f"Frontend disponibile su http://localhost:{PORT}")
         print(f"Leggo configurazione da: {ENV_PATH}")
         print("Premi Ctrl+C per fermare il server.")

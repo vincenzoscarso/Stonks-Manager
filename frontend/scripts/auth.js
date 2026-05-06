@@ -84,18 +84,153 @@ async function authLogout() {
     showLoginSection();
 }
 
+// ── RESET COMPLETO DATI APP ───────────────────────────────────────────────────
+
+/**
+ * Pulisce TUTTI i dati e campi visibili dal DOM.
+ * Chiamata al logout per evitare che i dati del vecchio utente
+ * restino visibili al prossimo utente che accede.
+ */
 function clearAppData() {
-    // Pulisce saldi e liste per evitare "flash" di dati del vecchio utente
-    if (document.getElementById("dashboard-balance")) document.getElementById("dashboard-balance").innerText = "—";
-    if (document.getElementById("transactions-cards-container")) document.getElementById("transactions-cards-container").innerHTML = "<p>Caricamento...</p>";
-    if (document.getElementById("accounts-list")) document.getElementById("accounts-list").innerHTML = "";
-    if (document.getElementById("categories-list")) document.getElementById("categories-list").innerHTML = "";
-    
-    // Distruggi il grafico se esiste (Chart.js)
-    if (window.myPieChart) {
-        window.myPieChart.destroy();
-        window.myPieChart = null;
-    }
+
+    // ── DATI GLOBALI IN MEMORIA ──────────────────────────────────────────────
+    if (typeof allAccounts !== "undefined")     allAccounts    = [];
+    if (typeof allCategories !== "undefined")   allCategories  = [];
+    if (typeof allTransactions !== "undefined") allTransactions = [];
+    // Alias window usato da transactions.js
+    window.allAccounts    = [];
+    window.allCategories  = [];
+    window.allTransactions = [];
+
+    // ── UTENTE ───────────────────────────────────────────────────────────────
+    var userNameEl = document.getElementById("user-display-name");
+    if (userNameEl) userNameEl.textContent = "—";
+
+    // ── DASHBOARD ────────────────────────────────────────────────────────────
+    var balanceEl = document.getElementById("dashboard-balance");
+    if (balanceEl) balanceEl.textContent = "—";
+
+    var catListEl = document.getElementById("dashboard-category-list");
+    if (catListEl) catListEl.innerHTML = "<p>Caricamento...</p>";
+
+    // Distruggi grafico Chart.js se esiste
+    if (window.myPieChart) { window.myPieChart.destroy(); window.myPieChart = null; }
+    // Variabile usata da dashboard.js
+    if (typeof pieChart !== "undefined" && pieChart) { pieChart.destroy(); pieChart = null; }
+
+    // ── TRANSAZIONI ──────────────────────────────────────────────────────────
+    var txContainer = document.getElementById("transactions-cards-container");
+    if (txContainer) txContainer.innerHTML = "<p>Caricamento...</p>";
+
+    // Reset filtri transazioni
+    var filterIds = ["filter-start-date", "filter-end-date", "filter-category", "filter-account", "filter-type"];
+    filterIds.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    if (typeof currentFilters !== "undefined") currentFilters = {};
+
+    // ── CONTI ────────────────────────────────────────────────────────────────
+    var accountsList = document.getElementById("accounts-list");
+    if (accountsList) accountsList.innerHTML = "";
+
+    var combineList = document.getElementById("accounts-combine-list");
+    if (combineList) combineList.innerHTML = "";
+
+    var combinedResult = document.getElementById("combined-balance-result");
+    if (combinedResult) combinedResult.textContent = "—";
+
+    // Reset form nuovo conto
+    var newAccName = document.getElementById("new-account-name");
+    if (newAccName) newAccName.value = "";
+    var newAccInclude = document.getElementById("new-account-include");
+    if (newAccInclude) newAccInclude.checked = true;
+
+    // Chiudi e svuota modal modifica conto
+    var editAccModal = document.getElementById("account-edit-modal");
+    if (editAccModal) editAccModal.style.display = "none";
+    ["edit-account-id", "edit-account-name"].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.value = "";
+    });
+    var editAccInclude = document.getElementById("edit-account-include");
+    if (editAccInclude) editAccInclude.checked = true;
+
+    // Chiudi e svuota modal elimina conto
+    var delAccModal = document.getElementById("account-delete-modal");
+    if (delAccModal) delAccModal.style.display = "none";
+    var delAccId = document.getElementById("delete-account-id");
+    if (delAccId) delAccId.value = "";
+    var delAccLabel = document.getElementById("delete-account-name-label");
+    if (delAccLabel) delAccLabel.textContent = "";
+    var delAccReplace = document.getElementById("delete-account-replace");
+    if (delAccReplace) delAccReplace.innerHTML = "";
+
+    // ── CATEGORIE ────────────────────────────────────────────────────────────
+    var categoriesList = document.getElementById("categories-list");
+    if (categoriesList) categoriesList.innerHTML = "";
+
+    // Reset form nuova categoria
+    ["new-cat-name", "new-cat-description"].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.value = "";
+    });
+    var newCatType = document.getElementById("new-cat-type");
+    if (newCatType) newCatType.value = "";
+
+    // Chiudi e svuota modal modifica categoria
+    var editCatModal = document.getElementById("category-edit-modal");
+    if (editCatModal) editCatModal.style.display = "none";
+    ["edit-cat-id", "edit-cat-name", "edit-cat-description"].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.value = "";
+    });
+    var editCatType = document.getElementById("edit-cat-type");
+    if (editCatType) editCatType.value = "expense";
+    var editCatCharCount = document.getElementById("edit-cat-char-count");
+    if (editCatCharCount) editCatCharCount.textContent = "0";
+
+    // Chiudi e svuota modal elimina categoria
+    var delCatModal = document.getElementById("category-delete-modal");
+    if (delCatModal) delCatModal.style.display = "none";
+    var delCatId = document.getElementById("delete-cat-id");
+    if (delCatId) delCatId.value = "";
+    var delCatLabel = document.getElementById("delete-cat-name-label");
+    if (delCatLabel) delCatLabel.textContent = "";
+    var delCatReplace = document.getElementById("delete-cat-replace");
+    if (delCatReplace) delCatReplace.innerHTML = "";
+
+    // ── MODAL TRANSAZIONE ────────────────────────────────────────────────────
+    var txModal = document.getElementById("transaction-modal");
+    if (txModal) txModal.style.display = "none";
+
+    // ── MODAL AI ─────────────────────────────────────────────────────────────
+    var aiQuickModal = document.getElementById("ai-quick-insert-modal");
+    if (aiQuickModal) aiQuickModal.style.display = "none";
+    var quickText = document.getElementById("quick-insert-text");
+    if (quickText) quickText.value = "";
+    var quickCharCount = document.getElementById("ai-char-count");
+    if (quickCharCount) quickCharCount.textContent = "0";
+    var quickErr = document.getElementById("quick-insert-error");
+    if (quickErr) { quickErr.textContent = ""; quickErr.style.display = "none"; }
+
+    var aiScanModal = document.getElementById("ai-scan-receipt-modal");
+    if (aiScanModal) aiScanModal.style.display = "none";
+    var receiptFile = document.getElementById("receipt-file");
+    if (receiptFile) receiptFile.value = "";
+    var scanErr = document.getElementById("scan-receipt-error");
+    if (scanErr) { scanErr.textContent = ""; scanErr.style.display = "none"; }
+
+    // ── SELECT CONTI E CATEGORIE (svuota i dropdown) ─────────────────────────
+    document.querySelectorAll(".select-account").forEach(function (sel) {
+        sel.innerHTML = "<option value=''>-- Tutti i conti --</option>";
+    });
+    document.querySelectorAll(".select-category").forEach(function (sel) {
+        sel.innerHTML = "<option value=''>-- Tutte le categorie --</option>";
+    });
+
+    // ── MESSAGGI DI ERRORE ───────────────────────────────────────────────────
+    ["accounts-error", "categories-error", "transactions-error", "modal-error"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = ""; el.style.display = "none"; }
+    });
 }
 
 // ── VISIBILITÀ SEZIONI ────────────────────────────────────────────────────────
@@ -103,6 +238,9 @@ function clearAppData() {
 function showLoginSection() {
     document.getElementById("section-auth").style.display = "block";
     document.getElementById("section-app").style.display = "none";
+    // Nascondi il FAB group sulla pagina di login
+    var fab = document.getElementById("fab-group");
+    if (fab) fab.style.display = "none";
 }
 
 function showApp() {
