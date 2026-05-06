@@ -8,21 +8,28 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
     line-height: 1.5;
-    background: #f5f5f5;
-    color: #222;
-    padding: 16px;
+    background: #f0f2f5;
+    color: #1c1e21;
+    padding: 10px;
+}
+
+/* Container principale per limitare la larghezza su desktop */
+#section-app {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 /* Sezioni principali */
 section {
     background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 16px;
-    margin-bottom: 20px;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 h1 { font-size: 1.8em; margin-bottom: 12px; }
@@ -72,85 +79,270 @@ textarea {
 }
 
 button {
-    padding: 6px 14px;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background: #e8e8e8;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #007bff;
+    color: white;
     cursor: pointer;
     font-size: 14px;
-    margin: 4px 2px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+    margin: 4px;
 }
 button:hover {
-    background: #d0d0d0;
+    opacity: 0.8;
 }
-
-/* Tabella storico */
-table {
+button.btn-secondary {
+    background: #6c757d;
+}
+button.btn-danger {
+    background: #dc3545;
+}
+button.btn-primary {
+    background: #28a745;
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    font-size: 14px;
-}
-th, td {
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-    text-align: left;
-}
-th {
-    background: #f0f0f0;
+    font-size: 16px;
+    padding: 12px;
 }
 
-/* Saldo dashboard */
-#dashboard-balance {
-    font-size: 2em;
+/* Filtri modernizzati */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.filters-container input, .filters-container select {
+    flex: 1;
+    min-width: 120px;
+}
+.filter-buttons {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+}
+.filter-buttons button {
+    flex: 1;
+}
+
+/* RIMOZIONE VECCHIA TABELLA */
+table { display: none; }
+
+/* ══════════════════════════════════════════════════════════
+   DESIGN CARD (Seguendo lo schizzo)
+   ══════════════════════════════════════════════════════════ */
+.transaction-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.card-category {
+    font-size: 1.1em;
     font-weight: bold;
-    margin: 8px 0;
+    color: #1c1e21;
 }
 
-/* Canva grafico */
+.card-date {
+    font-size: 0.85em;
+    color: #65676b;
+}
+
+.card-description {
+    font-size: 0.95em;
+    color: #4b4f56;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.card-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-top: 4px;
+}
+
+.card-amount {
+    font-size: 1.4em;
+    font-weight: 800;
+}
+
+.card-amount.income { color: #28a745; }
+.card-amount.expense { color: #dc3545; }
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f2f5;
+}
+.card-actions button {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODAL UNIFICATO
+   ══════════════════════════════════════════════════════════ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #fff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 16px;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+    color: #65676b;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    margin: 0;
+}
+
+.field-error {
+    color: #dc3545;
+    font-size: 0.8em;
+    margin-top: 4px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.75em;
+    color: #8d949e;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+.modal-actions button {
+    flex: 1;
+}
+
+/* Radio buttons moderni */
+.radio-group-modern {
+    display: flex;
+    background: #f0f2f5;
+    padding: 4px;
+    border-radius: 10px;
+}
+.radio-label {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 600;
+}
+.radio-label has(input:checked) {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.radio-label input { display: none; }
+/* Fallback per browser vecchi */
+.radio-label:has(input:checked) {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #007bff;
+}
+
+/* Responsività Mobile */
+@media (max-width: 600px) {
+    body { padding: 8px; }
+    section { padding: 16px; border-radius: 0; margin-left: -8px; margin-right: -8px; }
+    .modal-content { padding: 16px; border-radius: 12px; }
+    .card-amount { font-size: 1.2em; }
+}
+/* ══════════════════════════════════════════════════════════
+   UTILITY & DASHBOARD (Ripristinati)
+   ══════════════════════════════════════════════════════════ */
+#dashboard-balance {
+    font-size: 2.2em;
+    font-weight: 800;
+    margin: 12px 0;
+    color: #1c1e21;
+}
+
 #pie-chart {
     max-width: 400px;
     max-height: 400px;
+    margin: 20px auto;
+    display: block;
 }
 
-/* Spinner loading */
 .loading {
     display: none;
-    color: #555;
+    color: #65676b;
     font-style: italic;
     margin-left: 8px;
+    font-size: 0.9em;
 }
 
-/* Form nascosti (modifica/elimina) — mostrati da JS */
+.account-item, .category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fff;
+}
+.account-item:last-child, .category-item:last-child {
+    border-bottom: none;
+}
+
 .hidden-form {
     display: none;
-    border: 1px dashed #aaa;
-    padding: 12px;
-    border-radius: 4px;
-    margin-top: 10px;
-    background: #fafafa;
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 12px;
+    border: 1px dashed #ced4da;
 }
 
-/* Items conti e categorie */
-.account-item, .category-item {
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
-}
-
-/* Radio inline */
-.radio-group label {
-    min-width: auto;
-    margin-right: 16px;
-    font-weight: normal;
-}
-
-/* Preview AI */
-#quick-insert-preview,
-#scan-receipt-preview {
-    display: none;
-    border: 1px dashed #aaa;
-    padding: 12px;
-    border-radius: 4px;
-    margin-top: 10px;
-    background: #fafafa;
+/* Fix per scritte lunghe in categorie */
+.category-item span {
+    word-break: break-all;
+    margin-right: 10px;
 }

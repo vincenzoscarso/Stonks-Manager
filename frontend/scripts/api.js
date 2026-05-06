@@ -1,7 +1,7 @@
 // api.js — Wrapper centralizzato per tutte le chiamate al backend
-// Il backend gira su localhost:8000, il frontend su localhost:3000
-
-const BACKEND_URL = "http://localhost:8000";
+// Rileva automaticamente l'IP per permettere il funzionamento da telefono nella stessa rete
+const BACKEND_HOST = window.location.hostname || "localhost";
+const BACKEND_URL = `http://${BACKEND_HOST}:8000`;
 const API_PREFIX  = "/api";   // prefisso per accounts, categories, transactions, users
 const AI_PREFIX   = "/ai";    // prefisso per quick-insert, scan-receipt
 
@@ -35,6 +35,12 @@ async function apiFetch(path, method, body) {
 
     if (!response.ok) {
         var errorData = await response.json().catch(function () { return {}; });
+        
+        // Gestione specifica Rate Limit
+        if (response.status === 429) {
+            throw new Error("Troppe richieste! Riprova tra un minuto.");
+        }
+
         var message = (errorData.detail) ? errorData.detail : "Errore " + response.status;
         throw new Error(message);
     }

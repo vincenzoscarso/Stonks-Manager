@@ -1,203 +1,90 @@
-// ai.js — Inserimento intelligente e scan ricevuta (AI)
+// ai.js — Integrazione con i servizi AI del backend (Quick Insert & Scan Receipt)
 
-// ── INSERIMENTO INTELLIGENTE (Quick Insert) ───────────────────────────────────
-
-// Stato dell'anteprima (la risposta AI prima della conferma)
-var quickInsertPreview = null;
-
+/**
+ * Inserimento Rapido AI
+ */
 async function runQuickInsert() {
-    var text = document.getElementById("quick-insert-text").value.trim();
-    if (!text) {
-        showError("ai-error", "Scrivi qualcosa prima di premere Analizza.");
+    const input = document.getElementById("quick-insert-text");
+    const text = input.value.trim();
+    const btn = document.getElementById("btn-quick-insert");
+    const loading = document.getElementById("quick-insert-loading");
+    const errorDiv = document.getElementById("ai-error");
+
+    if (!text) return;
+    
+    // Validazione lunghezza prompt
+    if (text.length > 256) {
+        errorDiv.innerText = "Il messaggio è troppo lungo (max 256 caratteri).";
+        errorDiv.style.display = "block";
         return;
     }
 
-    clearError("ai-error");
-    document.getElementById("quick-insert-preview").style.display = "none";
-    document.getElementById("quick-insert-loading").style.display = "inline";
+    errorDiv.style.display = "none";
+    btn.disabled = true;
+    loading.style.display = "inline";
 
     try {
-        var result = await apiQuickInsert(text);
-        document.getElementById("quick-insert-loading").style.display = "none";
-        quickInsertPreview = result;
-        showQuickInsertPreview(result);
+        const result = await apiQuickInsert(text);
+        
+        // Invece di mostrare un'anteprima statica, apriamo il Modal unificato
+        // pre-popolato con i dati suggeriti dall'AI
+        openTransactionModal("add", {
+            type: result.type,
+            amount: result.amount,
+            date: result.date ? result.date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+            category_id: result.category_id,
+            account_id: result.account_id,
+            description: result.description
+        });
+
+        input.value = ""; // pulisce l'input dopo il successo
     } catch (err) {
-        document.getElementById("quick-insert-loading").style.display = "none";
-        showError("ai-error", "Errore AI: " + err.message);
+        errorDiv.innerText = "Errore AI: " + err.message;
+        errorDiv.style.display = "block";
+    } finally {
+        btn.disabled = false;
+        loading.style.display = "none";
     }
 }
 
-// Mostra l'anteprima restituita dall'AI in campi modificabili prima della conferma
-function showQuickInsertPreview(result) {
-    // Popola i campi di anteprima con i dati restituiti dall'AI
-    // result atteso: { type, amount, date, category_id, description }
-    var typeRadios = document.querySelectorAll("input[name='qi-type']");
-    typeRadios.forEach(function (r) {
-        r.checked = (r.value === result.type);
-    });
-
-    document.getElementById("qi-amount").value   = result.amount   || "";
-    document.getElementById("qi-date").value     = (result.date ? result.date.substring(0, 10) : getTodayString());
-    document.getElementById("qi-description").value = result.description || "";
-
-    // Popola la select categoria con il valore suggerito dall'AI
-    var catSel = document.getElementById("qi-category");
-    catSel.innerHTML = "<option value=''>-- Seleziona categoria --</option>";
-    allCategories.forEach(function (cat) {
-        var opt = document.createElement("option");
-        opt.value = cat.id;
-        opt.textContent = cat.name + " (" + cat.type + ")";
-        catSel.appendChild(opt);
-    });
-    if (result.category_id) catSel.value = result.category_id;
-
-    // Popola la select conto
-    var accSel = document.getElementById("qi-account");
-    accSel.innerHTML = "<option value=''>-- Seleziona conto --</option>";
-    allAccounts.forEach(function (acc) {
-        var opt = document.createElement("option");
-        opt.value = acc.id;
-        opt.textContent = acc.name;
-        accSel.appendChild(opt);
-    });
-    if (result.account_id) accSel.value = result.account_id;
-
-    document.getElementById("quick-insert-preview").style.display = "block";
-}
-
-async function confirmQuickInsert() {
-    var type        = document.querySelector("input[name='qi-type']:checked");
-    var amount      = document.getElementById("qi-amount").value;
-    var date        = document.getElementById("qi-date").value;
-    var categoryId  = document.getElementById("qi-category").value;
-    var accountId   = document.getElementById("qi-account").value;
-    var description = document.getElementById("qi-description").value.trim();
-
-    if (!type || !amount || !date || !categoryId || !accountId) {
-        showError("ai-error", "Completa tutti i campi obbligatori prima di confermare.");
-        return;
-    }
-
-    var data = {
-        type:        type.value,
-        amount:      parseFloat(amount),
-        date:        date,
-        category_id: categoryId,
-        account_id:  accountId,
-        description: description || null,
-    };
-
-    try {
-        await apiCreateTransaction(data);
-        clearError("ai-error");
-        document.getElementById("quick-insert-text").value = "";
-        document.getElementById("quick-insert-preview").style.display = "none";
-        quickInsertPreview = null;
-        await loadTransactions();
-    } catch (err) {
-        showError("ai-error", "Errore salvataggio: " + err.message);
-    }
-}
-
-function cancelQuickInsert() {
-    document.getElementById("quick-insert-preview").style.display = "none";
-    quickInsertPreview = null;
-}
-
-// ── SCAN RICEVUTA ─────────────────────────────────────────────────────────────
-
-var scanReceiptPreview = null;
-
+/**
+ * Scansione Ricevuta AI
+ */
 async function runScanReceipt() {
-    var fileInput = document.getElementById("receipt-file");
+    const fileInput = document.getElementById("receipt-file");
+    const btn = document.getElementById("btn-scan-receipt");
+    const loading = document.getElementById("scan-receipt-loading");
+    const errorDiv = document.getElementById("ai-error");
+
     if (!fileInput.files || fileInput.files.length === 0) {
-        showError("ai-error", "Seleziona un'immagine della ricevuta.");
+        alert("Seleziona prima un'immagine.");
         return;
     }
 
-    clearError("ai-error");
-    document.getElementById("scan-receipt-preview").style.display = "none";
-    document.getElementById("scan-receipt-loading").style.display = "inline";
+    errorDiv.style.display = "none";
+    btn.disabled = true;
+    loading.style.display = "inline";
 
     try {
-        var result = await apiScanReceipt(fileInput.files[0]);
-        document.getElementById("scan-receipt-loading").style.display = "none";
-        scanReceiptPreview = result;
-        showScanReceiptPreview(result);
+        const result = await apiScanReceipt(fileInput.files[0]);
+        
+        // Apriamo il Modal con i dati della ricevuta
+        openTransactionModal("add", {
+            type: result.type || "expense",
+            amount: result.amount,
+            date: result.date ? result.date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+            category_id: result.category_id,
+            account_id: result.account_id,
+            description: result.description || "Scansione ricevuta"
+        });
+
+        fileInput.value = ""; // reset file input
     } catch (err) {
-        document.getElementById("scan-receipt-loading").style.display = "none";
-        showError("ai-error", "Errore scansione: " + err.message);
+        errorDiv.innerText = "Errore Scansione: " + err.message;
+        errorDiv.style.display = "block";
+    } finally {
+        btn.disabled = false;
+        loading.style.display = "none";
     }
 }
 
-function showScanReceiptPreview(result) {
-    var typeRadios = document.querySelectorAll("input[name='sr-type']");
-    typeRadios.forEach(function (r) {
-        r.checked = (r.value === result.type);
-    });
-
-    document.getElementById("sr-amount").value      = result.amount || "";
-    document.getElementById("sr-date").value        = (result.date ? result.date.substring(0, 10) : getTodayString());
-    document.getElementById("sr-description").value = result.description || "";
-
-    var catSel = document.getElementById("sr-category");
-    catSel.innerHTML = "<option value=''>-- Seleziona categoria --</option>";
-    allCategories.forEach(function (cat) {
-        var opt = document.createElement("option");
-        opt.value = cat.id;
-        opt.textContent = cat.name + " (" + cat.type + ")";
-        catSel.appendChild(opt);
-    });
-    if (result.category_id) catSel.value = result.category_id;
-
-    var accSel = document.getElementById("sr-account");
-    accSel.innerHTML = "<option value=''>-- Seleziona conto --</option>";
-    allAccounts.forEach(function (acc) {
-        var opt = document.createElement("option");
-        opt.value = acc.id;
-        opt.textContent = acc.name;
-        accSel.appendChild(opt);
-    });
-    if (result.account_id) accSel.value = result.account_id;
-
-    document.getElementById("scan-receipt-preview").style.display = "block";
-}
-
-async function confirmScanReceipt() {
-    var type        = document.querySelector("input[name='sr-type']:checked");
-    var amount      = document.getElementById("sr-amount").value;
-    var date        = document.getElementById("sr-date").value;
-    var categoryId  = document.getElementById("sr-category").value;
-    var accountId   = document.getElementById("sr-account").value;
-    var description = document.getElementById("sr-description").value.trim();
-
-    if (!type || !amount || !date || !categoryId || !accountId) {
-        showError("ai-error", "Completa tutti i campi obbligatori prima di confermare.");
-        return;
-    }
-
-    var data = {
-        type:        type.value,
-        amount:      parseFloat(amount),
-        date:        date,
-        category_id: categoryId,
-        account_id:  accountId,
-        description: description || null,
-    };
-
-    try {
-        await apiCreateTransaction(data);
-        clearError("ai-error");
-        document.getElementById("receipt-file").value = "";
-        document.getElementById("scan-receipt-preview").style.display = "none";
-        scanReceiptPreview = null;
-        await loadTransactions();
-    } catch (err) {
-        showError("ai-error", "Errore salvataggio: " + err.message);
-    }
-}
-
-function cancelScanReceipt() {
-    document.getElementById("scan-receipt-preview").style.display = "none";
-    scanReceiptPreview = null;
-}

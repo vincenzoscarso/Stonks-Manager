@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stonks Manager — MyWallet</title>
     <meta name="description" content="Dashboard personale per gestire entrate, uscite e conti multipli con AI integrata." />
 
@@ -70,9 +70,9 @@
         <input type="password" id="reg-password" placeholder="Almeno 6 caratteri" />
     </div>
     <button id="btn-register" onclick="handleRegister()">Registrati</button>
-    <p id="reg-success" style="color: green; display: none;">
-        Registrazione avvenuta! Controlla la tua email per confermare l'account.
-    </p>
+    <div id="reg-success" style="display:none; color: green; margin-top: 10px;">
+        Registrazione avvenuta! Controlla la tua email per confermare (se richiesto) o procedi al login.
+    </div>
 </section>
 
 
@@ -137,7 +137,47 @@
             <p>Caricamento...</p>
         </div>
     </section>
+    
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: INSERIMENTO INTELLIGENTE (AI)
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-ai">
+        <h2>Inserimento Intelligente</h2>
+        <div id="ai-error" class="error-msg"></div>
 
+        <!-- Quick Insert -->
+        <h3>Cosa hai fatto oggi?</h3>
+        <p style="font-size: 0.9em; color: #65676b; margin-bottom: 8px;">
+            Es: "Oggi ho speso 15 euro per due pizze"
+        </p>
+        <div class="form-group">
+            <textarea id="quick-insert-text" maxlength="256" placeholder="Scrivi qui la tua spesa..."></textarea>
+            <div class="char-counter"><span id="ai-char-count">0</span>/256</div>
+        </div>
+        <button id="btn-quick-insert" class="btn-primary" onclick="runQuickInsert()">Analizza con AI</button>
+        <span id="quick-insert-loading" class="loading">Analisi in corso...</span>
+
+        <hr style="margin: 24px 0; opacity: 0.1;" />
+
+        <!-- Scan Receipt -->
+        <h3>Scansiona Ricevuta</h3>
+        <p style="font-size: 0.9em; color: #65676b; margin-bottom: 8px;">
+            Carica una foto dello scontrino per estrarre i dati.
+        </p>
+        <div class="form-group">
+            <input type="file" id="receipt-file" accept="image/*" />
+        </div>
+        <button id="btn-scan-receipt" class="btn-primary" onclick="runScanReceipt()">Scansiona Scontrino</button>
+        <span id="scan-receipt-loading" class="loading">Scansione in corso...</span>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: AZIONI RAPIDE
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-actions">
+        <button class="btn-primary" onclick="openTransactionModalForAdd()">+ Nuova Transazione</button>
+    </section>
 
     <!-- ══════════════════════════════════════════════════════════
          SOTTO-SEZIONE: GESTIONE CONTI
@@ -203,204 +243,7 @@
 
 
     <!-- ══════════════════════════════════════════════════════════
-         SOTTO-SEZIONE: INSERIMENTO MANUALE TRANSAZIONE
-         ══════════════════════════════════════════════════════════ -->
-    <section id="section-new-transaction">
-        <h2>Aggiungi Transazione (manuale)</h2>
-
-        <div id="tx-error" class="error-msg"></div>
-
-        <div class="radio-group">
-            <strong>Tipo:</strong>
-            <label>
-                <input type="radio" name="tx-type" value="expense" checked
-                       onchange="renderCategorySelectsByType()"> Uscita
-            </label>
-            <label>
-                <input type="radio" name="tx-type" value="income"
-                       onchange="renderCategorySelectsByType()"> Entrata
-            </label>
-        </div>
-
-        <div>
-            <label for="tx-amount">Importo (€):</label>
-            <input type="number" id="tx-amount" min="0.01" step="0.01" placeholder="15.00" />
-        </div>
-
-        <div>
-            <label for="tx-date">Data:</label>
-            <input type="date" id="tx-date" />
-        </div>
-
-        <div>
-            <label for="tx-category">Categoria:</label>
-            <select id="tx-category" class="select-category-filtered">
-                <option value="">-- Seleziona categoria --</option>
-            </select>
-        </div>
-
-        <div>
-            <label for="tx-account">Conto:</label>
-            <select id="tx-account" class="select-account">
-                <option value="">-- Seleziona conto --</option>
-            </select>
-        </div>
-
-        <div>
-            <label for="tx-description">Descrizione (opz.):</label>
-            <input type="text" id="tx-description" placeholder="Es. Cena con amici" />
-        </div>
-
-        <button id="btn-add-transaction" onclick="submitNewTransaction()">Aggiungi</button>
-
-        <!-- Form modifica transazione (nascosto di default) -->
-        <div id="edit-tx-form" class="hidden-form">
-            <h3>Modifica transazione</h3>
-            <input type="hidden" id="edit-tx-id" />
-
-            <div class="radio-group">
-                <strong>Tipo:</strong>
-                <label>
-                    <input type="radio" name="edit-tx-type" value="expense"> Uscita
-                </label>
-                <label>
-                    <input type="radio" name="edit-tx-type" value="income"> Entrata
-                </label>
-            </div>
-
-            <div>
-                <label for="edit-tx-amount">Importo (€):</label>
-                <input type="number" id="edit-tx-amount" min="0.01" step="0.01" />
-            </div>
-            <div>
-                <label for="edit-tx-date">Data:</label>
-                <input type="date" id="edit-tx-date" />
-            </div>
-            <div>
-                <label for="edit-tx-category">Categoria:</label>
-                <select id="edit-tx-category"></select>
-            </div>
-            <div>
-                <label for="edit-tx-account">Conto:</label>
-                <select id="edit-tx-account" class="select-account"></select>
-            </div>
-            <div>
-                <label for="edit-tx-description">Descrizione (opz.):</label>
-                <input type="text" id="edit-tx-description" />
-            </div>
-
-            <button onclick="submitEditTransaction()">Salva</button>
-            <button onclick="cancelEditTransaction()">Annulla</button>
-        </div>
-    </section>
-
-
-    <!-- ══════════════════════════════════════════════════════════
-         SOTTO-SEZIONE: INSERIMENTO INTELLIGENTE AI
-         ══════════════════════════════════════════════════════════ -->
-    <section id="section-ai-insert">
-        <h2>Inserimento Intelligente (AI)</h2>
-        <p>Descrivi la spesa in linguaggio naturale e l'AI compilerà i campi per te.</p>
-
-        <div id="ai-error" class="error-msg"></div>
-
-        <div>
-            <label for="quick-insert-text">Messaggio:</label>
-            <input type="text" id="quick-insert-text"
-                   placeholder="Es. Oggi ho speso 15 euro per due pizze con Marco"
-                   style="width: 60%;" />
-        </div>
-        <button id="btn-quick-insert" onclick="runQuickInsert()">Analizza</button>
-        <span id="quick-insert-loading" class="loading">Sto analizzando...</span>
-
-        <!-- Anteprima risultato AI (nascosta finché non arriva risposta) -->
-        <div id="quick-insert-preview">
-            <h3>Anteprima — controlla e modifica prima di confermare</h3>
-
-            <div class="radio-group">
-                <strong>Tipo:</strong>
-                <label><input type="radio" name="qi-type" value="expense"> Uscita</label>
-                <label><input type="radio" name="qi-type" value="income"> Entrata</label>
-            </div>
-            <div>
-                <label for="qi-amount">Importo (€):</label>
-                <input type="number" id="qi-amount" min="0.01" step="0.01" />
-            </div>
-            <div>
-                <label for="qi-date">Data:</label>
-                <input type="date" id="qi-date" />
-            </div>
-            <div>
-                <label for="qi-category">Categoria:</label>
-                <select id="qi-category"></select>
-            </div>
-            <div>
-                <label for="qi-account">Conto:</label>
-                <select id="qi-account"></select>
-            </div>
-            <div>
-                <label for="qi-description">Descrizione:</label>
-                <input type="text" id="qi-description" />
-            </div>
-
-            <button id="btn-confirm-quick-insert" onclick="confirmQuickInsert()">Conferma e salva</button>
-            <button onclick="cancelQuickInsert()">Annulla</button>
-        </div>
-    </section>
-
-
-    <!-- ══════════════════════════════════════════════════════════
-         SOTTO-SEZIONE: SCAN RICEVUTA (AI)
-         ══════════════════════════════════════════════════════════ -->
-    <section id="section-scan-receipt">
-        <h2>Scansiona Ricevuta (AI)</h2>
-        <p>Carica una foto della ricevuta e l'AI la leggerà per te.</p>
-
-        <div>
-            <label for="receipt-file">Immagine ricevuta:</label>
-            <input type="file" id="receipt-file" accept="image/*" />
-        </div>
-        <button id="btn-scan-receipt" onclick="runScanReceipt()">Scansiona</button>
-        <span id="scan-receipt-loading" class="loading">Analisi in corso...</span>
-
-        <!-- Anteprima risultato (nascosta di default) -->
-        <div id="scan-receipt-preview">
-            <h3>Anteprima — controlla e modifica prima di confermare</h3>
-
-            <div class="radio-group">
-                <strong>Tipo:</strong>
-                <label><input type="radio" name="sr-type" value="expense"> Uscita</label>
-                <label><input type="radio" name="sr-type" value="income"> Entrata</label>
-            </div>
-            <div>
-                <label for="sr-amount">Importo (€):</label>
-                <input type="number" id="sr-amount" min="0.01" step="0.01" />
-            </div>
-            <div>
-                <label for="sr-date">Data:</label>
-                <input type="date" id="sr-date" />
-            </div>
-            <div>
-                <label for="sr-category">Categoria:</label>
-                <select id="sr-category"></select>
-            </div>
-            <div>
-                <label for="sr-account">Conto:</label>
-                <select id="sr-account"></select>
-            </div>
-            <div>
-                <label for="sr-description">Descrizione:</label>
-                <input type="text" id="sr-description" />
-            </div>
-
-            <button id="btn-confirm-scan-receipt" onclick="confirmScanReceipt()">Conferma e salva</button>
-            <button onclick="cancelScanReceipt()">Annulla</button>
-        </div>
-    </section>
-
-
-    <!-- ══════════════════════════════════════════════════════════
-         SOTTO-SEZIONE: STORICO MOVIMENTI
+         SOTTO-SEZIONE: STORICO MOVIMENTI (CARD)
          ══════════════════════════════════════════════════════════ -->
     <section id="section-history">
         <h2>Storico Movimenti</h2>
@@ -408,56 +251,30 @@
         <div id="transactions-error" class="error-msg"></div>
 
         <!-- Filtri -->
-        <h3>Filtri</h3>
-        <div>
-            <label for="filter-start-date">Dal:</label>
-            <input type="date" id="filter-start-date" />
-        </div>
-        <div>
-            <label for="filter-end-date">Al:</label>
-            <input type="date" id="filter-end-date" />
-        </div>
-        <div>
-            <label for="filter-category">Categoria:</label>
+        <div class="filters-container">
+            <input type="date" id="filter-start-date" placeholder="Dal" />
+            <input type="date" id="filter-end-date" placeholder="Al" />
             <select id="filter-category" class="select-category">
-                <option value="">-- Tutte --</option>
+                <option value="">-- Categorie --</option>
             </select>
-        </div>
-        <div>
-            <label for="filter-account">Conto:</label>
             <select id="filter-account" class="select-account">
-                <option value="">-- Tutti --</option>
+                <option value="">-- Conti --</option>
             </select>
-        </div>
-        <div>
-            <label for="filter-type">Tipo:</label>
             <select id="filter-type">
-                <option value="">-- Tutti --</option>
+                <option value="">-- Tipo --</option>
                 <option value="income">Entrata</option>
                 <option value="expense">Uscita</option>
             </select>
+            <div class="filter-buttons">
+                <button onclick="applyTransactionFilters()">Applica</button>
+                <button onclick="resetTransactionFilters()">Reset</button>
+            </div>
         </div>
 
-        <button id="btn-apply-filters" onclick="applyTransactionFilters()">Applica filtri</button>
-        <button id="btn-reset-filters" onclick="resetTransactionFilters()">Reset</button>
-
-        <!-- Tabella -->
-        <table id="transactions-table">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Tipo</th>
-                    <th>Categoria</th>
-                    <th>Importo</th>
-                    <th>Conto</th>
-                    <th>Descrizione</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody id="transactions-tbody">
-                <tr><td colspan="7">Caricamento...</td></tr>
-            </tbody>
-        </table>
+        <!-- Container Card -->
+        <div id="transactions-cards-container">
+            <p>Caricamento...</p>
+        </div>
     </section>
 
 
@@ -533,12 +350,76 @@
 
 </section><!-- fine section-app -->
 
+<!-- ══════════════════════════════════════════════════════════
+     MODAL UNIFICATO TRANSAZIONE
+     ══════════════════════════════════════════════════════════ -->
+<div id="transaction-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h2 id="modal-title">Nuova Transazione</h2>
+        <div id="modal-error" class="error-msg"></div>
+
+        <input type="hidden" id="modal-tx-id" />
+
+        <div class="form-group">
+            <label>Tipo:</label>
+            <div class="radio-group-modern">
+                <label class="radio-label">
+                    <input type="radio" name="modal-tx-type" value="expense" checked onchange="updateModalCategories()"> Uscita
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="modal-tx-type" value="income" onchange="updateModalCategories()"> Entrata
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-tx-amount">Importo (€):</label>
+            <input type="number" id="modal-tx-amount" step="0.01" placeholder="0.00" />
+            <div id="err-amount" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-tx-date">Data:</label>
+            <input type="date" id="modal-tx-date" />
+            <div id="err-date" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-tx-category">Categoria:</label>
+            <select id="modal-tx-category">
+                <option value="">-- Seleziona --</option>
+            </select>
+            <div id="err-category" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-tx-account">Conto:</label>
+            <select id="modal-tx-account">
+                <option value="">-- Seleziona --</option>
+            </select>
+            <div id="err-account" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-tx-description">Descrizione:</label>
+            <textarea id="modal-tx-description" maxlength="256" placeholder="Opzionale..."></textarea>
+            <div class="char-counter"><span id="char-count">0</span>/256</div>
+            <div id="err-description" class="field-error"></div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="saveTransactionFromModal()">Salva</button>
+            <button class="btn-secondary" onclick="closeTransactionModal()">Annulla</button>
+        </div>
+    </div>
+</div>
 
 <!-- ============================================================
-     SCRIPT JS (caricati alla fine per trovare il DOM già pronto)
+     SCRIPT JS
      ============================================================ -->
 <script src="scripts/api.js"></script>
 <script src="scripts/auth.js"></script>
+<script src="scripts/ui_logic.js"></script>
 <script src="scripts/accounts.js"></script>
 <script src="scripts/categories.js"></script>
 <script src="scripts/transactions.js"></script>
@@ -643,9 +524,6 @@
     // ── INIZIALIZZAZIONE APP (chiamata da auth.js dopo il login) ─────────────────
 
     async function appInit() {
-        // Imposta la data di oggi come default nel form transazione
-        document.getElementById("tx-date").value = getTodayString();
-
         // Aggiorna il nome utente visualizzato
         try {
             var userProfile = await apiGetUser();

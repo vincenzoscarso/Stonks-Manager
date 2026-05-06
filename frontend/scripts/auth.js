@@ -32,6 +32,7 @@ async function authInit() {
         } else {
             currentUser = null;
             localStorage.removeItem("sb_access_token");
+            clearAppData(); // Pulisce i dati del vecchio utente
             showLoginSection();
         }
     });
@@ -79,7 +80,22 @@ async function authLogout() {
     await window.sbClient.auth.signOut();
     currentUser = null;
     localStorage.removeItem("sb_access_token");
+    clearAppData();
     showLoginSection();
+}
+
+function clearAppData() {
+    // Pulisce saldi e liste per evitare "flash" di dati del vecchio utente
+    if (document.getElementById("dashboard-balance")) document.getElementById("dashboard-balance").innerText = "—";
+    if (document.getElementById("transactions-cards-container")) document.getElementById("transactions-cards-container").innerHTML = "<p>Caricamento...</p>";
+    if (document.getElementById("accounts-list")) document.getElementById("accounts-list").innerHTML = "";
+    if (document.getElementById("categories-list")) document.getElementById("categories-list").innerHTML = "";
+    
+    // Distruggi il grafico se esiste (Chart.js)
+    if (window.myPieChart) {
+        window.myPieChart.destroy();
+        window.myPieChart = null;
+    }
 }
 
 // ── VISIBILITÀ SEZIONI ────────────────────────────────────────────────────────
