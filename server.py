@@ -35,7 +35,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=FRONTEND_DIR, **kwargs)
 
     def do_GET(self):
-        # Intercetta /config.js e lo genera dinamicamente dal .env
         if self.path == "/config.js":
             self._serve_config_js()
         else:
@@ -43,7 +42,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _serve_config_js(self):
         url, key = load_config()
-        # Espone le variabili come costanti globali window.*
         js_content = (
             f'window.SUPABASE_URL = "{url}";\n'
             f'window.SUPABASE_KEY = "{key}";\n'
@@ -53,7 +51,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/javascript; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        # Nessuna cache: così una modifica al .env è subito disponibile al reload
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
@@ -63,8 +60,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    # Usa ThreadingTCPServer invece di TCPServer per supportare richieste parallele 
-    # ed evitare che il browser blocchi il server
     class ThreadingServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         pass
     
