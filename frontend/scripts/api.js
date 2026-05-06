@@ -2,6 +2,8 @@
 // Il backend gira su localhost:8000, il frontend su localhost:3000
 
 const BACKEND_URL = "http://localhost:8000";
+const API_PREFIX  = "/api";   // prefisso per accounts, categories, transactions, users
+const AI_PREFIX   = "/ai";    // prefisso per quick-insert, scan-receipt
 
 // Recupera il token JWT salvato in localStorage (messo da auth.js)
 function getToken() {
@@ -71,25 +73,25 @@ async function apiFetchFile(path, formData) {
 // ── ACCOUNTS ──────────────────────────────────────────────────────────────────
 
 function apiGetAccounts() {
-    return apiFetch("/accounts", "GET");
+    return apiFetch(API_PREFIX + "/accounts", "GET");
 }
 
 function apiCreateAccount(name, includeInTotal) {
-    return apiFetch("/accounts", "POST", {
+    return apiFetch(API_PREFIX + "/accounts", "POST", {
         name: name,
         include_in_total: includeInTotal,
     });
 }
 
 function apiUpdateAccount(accountId, name, includeInTotal) {
-    return apiFetch("/accounts/" + accountId, "PUT", {
+    return apiFetch(API_PREFIX + "/accounts/" + accountId, "PUT", {
         name: name,
         include_in_total: includeInTotal,
     });
 }
 
 function apiDeleteAccount(accountId, replaceWithId) {
-    var path = "/accounts/" + accountId;
+    var path = API_PREFIX + "/accounts/" + accountId;
     if (replaceWithId) {
         path += "?replace_with=" + replaceWithId;
     }
@@ -99,11 +101,11 @@ function apiDeleteAccount(accountId, replaceWithId) {
 // ── CATEGORIES ────────────────────────────────────────────────────────────────
 
 function apiGetCategories() {
-    return apiFetch("/categories", "GET");
+    return apiFetch(API_PREFIX + "/categories", "GET");
 }
 
 function apiCreateCategory(name, type, description) {
-    return apiFetch("/categories", "POST", {
+    return apiFetch(API_PREFIX + "/categories", "POST", {
         name: name,
         type: type,
         description: description || null,
@@ -111,7 +113,7 @@ function apiCreateCategory(name, type, description) {
 }
 
 function apiUpdateCategory(categoryId, name, type, description) {
-    return apiFetch("/categories/" + categoryId, "PUT", {
+    return apiFetch(API_PREFIX + "/categories/" + categoryId, "PUT", {
         name: name,
         type: type,
         description: description || null,
@@ -119,7 +121,7 @@ function apiUpdateCategory(categoryId, name, type, description) {
 }
 
 function apiDeleteCategory(categoryId, replaceWithId) {
-    var path = "/categories/" + categoryId;
+    var path = API_PREFIX + "/categories/" + categoryId;
     if (replaceWithId) {
         path += "?replace_with=" + replaceWithId;
     }
@@ -139,38 +141,38 @@ function apiGetTransactions(filters) {
         if (filters.type)       params.append("type",        filters.type);
     }
     var query = params.toString();
-    var path = "/transactions" + (query ? "?" + query : "");
+    var path = API_PREFIX + "/transactions" + (query ? "?" + query : "");
     return apiFetch(path, "GET");
 }
 
 function apiCreateTransaction(data) {
     // data: { type, amount, date, account_id, category_id, description }
-    return apiFetch("/transactions", "POST", data);
+    return apiFetch(API_PREFIX + "/transactions", "POST", data);
 }
 
 function apiUpdateTransaction(transactionId, data) {
-    return apiFetch("/transactions/" + transactionId, "PUT", data);
+    return apiFetch(API_PREFIX + "/transactions/" + transactionId, "PUT", data);
 }
 
 function apiDeleteTransaction(transactionId) {
-    return apiFetch("/transactions/" + transactionId, "DELETE");
+    return apiFetch(API_PREFIX + "/transactions/" + transactionId, "DELETE");
 }
 
 // ── USER PROFILE ──────────────────────────────────────────────────────────────
 
 function apiGetUser() {
-    return apiFetch("/users", "GET");
+    return apiFetch(API_PREFIX + "/users", "GET");
 }
 
 function apiCreateUser(displayName, email) {
-    return apiFetch("/users", "POST", {
+    return apiFetch(API_PREFIX + "/users", "POST", {
         display_name: displayName,
         email: email,
     });
 }
 
 function apiUpdateUser(displayName, email) {
-    return apiFetch("/users", "PUT", {
+    return apiFetch(API_PREFIX + "/users", "PUT", {
         display_name: displayName,
         email: email,
     });
@@ -179,11 +181,11 @@ function apiUpdateUser(displayName, email) {
 // ── AI ────────────────────────────────────────────────────────────────────────
 
 function apiQuickInsert(text) {
-    return apiFetch("/quick-insert", "POST", { text: text });
+    return apiFetch(AI_PREFIX + "/quick-insert", "POST", { text: text });
 }
 
 function apiScanReceipt(imageFile) {
     var formData = new FormData();
     formData.append("file", imageFile);
-    return apiFetchFile("/scan-receipt", formData);
+    return apiFetchFile(AI_PREFIX + "/scan-receipt", formData);
 }

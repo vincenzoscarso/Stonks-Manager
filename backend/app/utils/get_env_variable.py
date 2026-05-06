@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-ENV_PATH = "..\\..\\..\\.env"
+ENV_PATH = "C:\\Users\\vince\\Desktop\\Code\\_Projects\\Stonks-Manager\\.env"
 
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
