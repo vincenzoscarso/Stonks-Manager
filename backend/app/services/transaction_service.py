@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from postgrest.types import CountMethod
 from supabase import create_client, Client
@@ -26,15 +26,35 @@ class TransactionService:
 
         self.supabase: Client = create_client(supabase_url, supabase_key)
 
-    def getTransactions(self, user_id: str) -> List[Transaction]:
+    def getTransactions(
+        self,
+        user_id: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        category_id: Optional[str] = None,
+        account_id: Optional[str] = None,
+        transaction_type: Optional[str] = None,
+    ) -> List[Transaction]:
         # Filter transactions by the user_profile_id of the associated account.
         # Uses a PostgREST inner join to filter on a related table's column.
-        response: APIResponse = (
+        query = (
             self.supabase.table("transaction")
             .select("*, account!inner(user_profile_id)")
             .eq("account.user_profile_id", user_id)
-            .execute()
         )
+
+        if start_date:
+            query = query.gte("date", start_date)
+        if end_date:
+            query = query.lte("date", end_date)
+        if category_id:
+            query = query.eq("category_id", category_id)
+        if account_id:
+            query = query.eq("account_id", account_id)
+        if transaction_type:
+            query = query.eq("type", transaction_type)
+
+        response: APIResponse = query.execute()
 
         error = getattr(response, "error", None)
         if error:

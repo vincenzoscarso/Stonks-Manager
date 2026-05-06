@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Depends, Query
 
 from app.models.transaction import NewTransaction, Transaction
 from app.services.transaction_service import TransactionService
@@ -15,11 +16,24 @@ def getTransactionService(supabase: Client = Depends(getSupabaseClient)) -> Tran
 
 @router.get("/transactions", response_model=list[Transaction])
 async def getTransactions(
-    user_id: str = Depends(getCurrentUser), service: TransactionService = Depends(getTransactionService)
+    start_date: Optional[str] = Query(None, description="Filter transactions from this date"),
+    end_date: Optional[str] = Query(None, description="Filter transactions up to this date"),
+    category_id: Optional[str] = Query(None, description="Filter transactions by category ID"),
+    account_id: Optional[str] = Query(None, description="Filter transactions by account ID"),
+    transaction_type: Optional[str] = Query(None, alias="type", description="Filter by income or expense"),
+    user_id: str = Depends(getCurrentUser),
+    service: TransactionService = Depends(getTransactionService),
 ) -> list[Transaction]:
 
     try:
-        return service.getTransactions(user_id)
+        return service.getTransactions(
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            category_id=category_id,
+            account_id=account_id,
+            transaction_type=transaction_type,
+        )
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
