@@ -20,9 +20,9 @@ updated_at,transaction,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigg
 account_id,transaction,*identico a 'account.id',,FOREIGN KEY,NO,,ON UPDATE CASCADE; ON DELETE CASCADE,,,INDEX necessario per velocizzare le operazioni
 category_id,transaction,*identico a 'category.id',,FOREIGN KEY,NO,,ON UPDATE CASCADE; ON DELETE RESTRICT,,,INDEX necessario per velocizzare le operazioni; Da gestire correttamente in logica applicativa all'eliminazione di una categoria; permettere cambio categoria
 id,category,UUID,,PRIMARY KEY,NO,gen_random_uuid(),,,,
-name,category,VARCHAR,64,,NO,,,"UNIQUE NULLS NOT DISTINCT (name, user_profile_id)",,INDEX necessario sulle categorie predefinite per identificarle correttamente
-type,category,"category_type: ENUM ('income', 'expense')",,,NO,,,,,
+name,category,VARCHAR,64,,NO,,,"UNIQUE NULLS NOT DISTINCT (name, type, user_profile_id)",,INDEX necessario sulle categorie predefinite per identificarle correttamente
+type,category,"category_type: ENUM ('income', 'expense')",,,NO,,,"UNIQUE NULLS NOT DISTINCT (name, type, user_profile_id)",,
 description,category,TEXT,,,SI,,,,,
 created_at,category,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,
 updated_at,category,TIMESTAMPTZ,,,NO,CURRENT_TIMESTAMP,,,,Necessario un trigger nel DB per la modifica automatica del timestamp
-user_profile_id,category,*identico a 'user_profile.id',,FOREIGN KEY,SI,,ON UPDATE CASCADE; ON DELETE CASCADE,"UNIQUE NULLS NOT DISTINCT (name, user_profile_id)",,INDEX necessario per velocizzare le operazioni; Pari a NULL per categoria contrassegnata come predefinita
+user_profile_id,category,*identico a 'user_profile.id',,FOREIGN KEY,SI,,ON UPDATE CASCADE; ON DELETE CASCADE,"UNIQUE NULLS NOT DISTINCT (name, type, user_profile_id)",,INDEX necessario per velocizzare le operazioni; Pari a NULL per categoria contrassegnata come predefinita

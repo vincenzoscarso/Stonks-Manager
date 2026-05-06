@@ -73,7 +73,7 @@ CREATE TABLE public.category (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_profile_id UUID REFERENCES public.user_profile(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT uq_category_name_per_user UNIQUE NULLS NOT DISTINCT (name, user_profile_id)
+    CONSTRAINT uq_category_name_type_per_user UNIQUE NULLS NOT DISTINCT (name, type, user_profile_id)
 );
 
 CREATE INDEX idx_category_user_id ON public.category(user_profile_id);
