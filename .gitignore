@@ -7,4 +7,4 @@ TODO-all.md
 .agents/
 .venv/
 __pycache__/
-res/instructions
+resources/instructions
