@@ -2,9 +2,9 @@ import httpx
 import json
 import base64
 from typing import Any, Dict, List
-from app.utils.get_env_variable import getEnvVariable
-from app.config.prompts import TEXT_PROMPT, VISION_PROMPT
-from app.config.configuration import AI_QUICK_INSERT_TIMEOUT, AI_SCAN_RECEIPT_TIMEOUT
+from backend.app.utils.get_env_variable import getEnvVariable
+from backend.app.config.prompts import TEXT_PROMPT, VISION_PROMPT
+from backend.app.config.configuration import AI_QUICK_INSERT_TIMEOUT, AI_SCAN_RECEIPT_TIMEOUT
 
 
 class AIService:

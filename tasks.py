@@ -4,8 +4,9 @@ from invoke.context import Context
 from dotenv import load_dotenv
 
 SEPARATOR = "-" * 90
-MAIN_FILE = ".\\app\\main.py"
+MAIN_FILE = ".\\backend\\app\\main.py"
 PYTHON = ".venv\\Scripts\\python.exe"
+ENV_PATH = "..\\.env"
 
 
 @task
@@ -14,7 +15,7 @@ def run(c: Context):
 
     __clearScreen()
 
-    c.run(f"uvicorn app.main:app --reload")
+    c.run(f"uvicorn backend.app.main:app --reload")
 
 
 @task
@@ -41,12 +42,11 @@ def checkLeaks(c: Context):
 
     __printMessageWithSeparator("SCANNING GIT HISTORY FOR SECRETS FROM .ENV")
 
-    env_path = "..\\.env"
-    if not os.path.exists(env_path):
-        print(f"Error: {env_path} not found.")
+    if not os.path.exists(ENV_PATH):
+        print(f"Error: {ENV_PATH} not found.")
         return
     secrets = {}
-    with open(env_path, "r") as f:
+    with open(ENV_PATH, "r") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:

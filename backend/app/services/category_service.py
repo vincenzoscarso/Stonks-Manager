@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from supabase import create_client, Client
-from app.models.category import NewCategory, Category
-from app.utils.get_env_variable import getEnvVariable
+from backend.app.models.category import NewCategory, Category
+from backend.app.utils.get_env_variable import getEnvVariable
 from postgrest.types import CountMethod
-from app.config.configuration import PER_USER_CATEGORY_LIMIT
+from backend.app.config.configuration import PER_USER_CATEGORY_LIMIT
 
 
 class CategoryService:

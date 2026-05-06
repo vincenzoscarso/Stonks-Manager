@@ -1,10 +1,10 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
 
-from app.models.transaction import NewTransaction, Transaction
-from app.services.transaction_service import TransactionService
-from app.utils.get_current_user import getCurrentUser
-from app.utils.get_supabase_client import getSupabaseClient
+from backend.app.models.transaction import NewTransaction, Transaction
+from backend.app.services.transaction_service import TransactionService
+from backend.app.utils.get_current_user import getCurrentUser
+from backend.app.utils.get_supabase_client import getSupabaseClient
 from supabase import Client
 
 router = APIRouter()

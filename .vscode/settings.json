@@ -1,15 +1,9 @@
 {
     "python.analysis.useLibraryCodeForTypes": true,
     "python.analysis.typeCheckingMode": "basic",
-    "python.defaultInterpreterPath": "C:/Users/vince/Desktop/Code/_Projects/Stonks-Manager/backend/.venv/Scripts/python.exe",
-    "python.testing.pytestArgs": [
-        "tests"
-    ],
-    "python.testing.cwd": "${workspaceFolder}/backend",
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
+    "python.defaultInterpreterPath": "C:/Users/vince/Desktop/Code/_Projects/Stonks-Manager/.venv/Scripts/python.exe",
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/backend"
+        "${workspaceFolder}/"
     ],
     "python.locator": "js",
     "python.experiments.enabled": false

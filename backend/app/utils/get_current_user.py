@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import Client
-from app.utils.get_supabase_client import getSupabaseClient, security
+from backend.app.utils.get_supabase_client import getSupabaseClient, security
 
 
 def getCurrentUser(

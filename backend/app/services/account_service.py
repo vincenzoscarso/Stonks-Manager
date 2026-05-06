@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from postgrest.types import CountMethod
 from supabase import create_client, Client
-from app.models.account import NewAccount, Account
-from app.utils.get_env_variable import getEnvVariable
-from app.config.configuration import PER_USER_ACCOUNT_LIMIT
+from backend.app.models.account import NewAccount, Account
+from backend.app.utils.get_env_variable import getEnvVariable
+from backend.app.config.configuration import PER_USER_ACCOUNT_LIMIT
 
 
 class AccountService:

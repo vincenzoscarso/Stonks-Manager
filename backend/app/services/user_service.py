@@ -4,9 +4,9 @@ from typing import Any, Dict, cast
 from postgrest.base_request_builder import APIResponse
 from postgrest.types import CountMethod
 from supabase import create_client, Client
-from app.models.user import NewUserProfile, UserProfile
-from app.utils.get_env_variable import getEnvVariable
-from app.config.configuration import USER_LIMIT
+from backend.app.models.user import NewUserProfile, UserProfile
+from backend.app.utils.get_env_variable import getEnvVariable
+from backend.app.config.configuration import USER_LIMIT
 
 
 class UserService:

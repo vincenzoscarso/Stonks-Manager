@@ -4,11 +4,11 @@ from typing import Any, Dict, List, Optional, cast
 from postgrest.base_request_builder import APIResponse
 from postgrest.types import CountMethod
 from supabase import create_client, Client
-from app.models.transaction import NewTransaction, Transaction
-from app.utils.get_env_variable import getEnvVariable
-from app.services.account_service import AccountService
-from app.services.category_service import CategoryService
-from app.config.configuration import PER_USER_TRANSACTIONS_LIMIT
+from backend.app.models.transaction import NewTransaction, Transaction
+from backend.app.utils.get_env_variable import getEnvVariable
+from backend.app.services.account_service import AccountService
+from backend.app.services.category_service import CategoryService
+from backend.app.config.configuration import PER_USER_TRANSACTIONS_LIMIT
 
 
 class TransactionService:

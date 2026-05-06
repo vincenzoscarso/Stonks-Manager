@@ -2,10 +2,10 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 
-from app.models.account import NewAccount, Account
-from app.services.account_service import AccountService
-from app.utils.get_current_user import getCurrentUser
-from app.utils.get_supabase_client import getSupabaseClient
+from backend.app.models.account import NewAccount, Account
+from backend.app.services.account_service import AccountService
+from backend.app.utils.get_current_user import getCurrentUser
+from backend.app.utils.get_supabase_client import getSupabaseClient
 from supabase import Client
 
 router = APIRouter()

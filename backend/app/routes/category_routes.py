@@ -2,10 +2,10 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 
-from app.models.category import NewCategory, Category
-from app.services.category_service import CategoryService
-from app.utils.get_current_user import getCurrentUser
-from app.utils.get_supabase_client import getSupabaseClient
+from backend.app.models.category import NewCategory, Category
+from backend.app.services.category_service import CategoryService
+from backend.app.utils.get_current_user import getCurrentUser
+from backend.app.utils.get_supabase_client import getSupabaseClient
 from supabase import Client
 
 router = APIRouter()

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 
-from app.models.user import NewUserProfile, UserProfile
-from app.services.user_service import UserService
-from app.utils.get_current_user import getCurrentUser
-from app.utils.get_supabase_client import getSupabaseClient
+from backend.app.models.user import NewUserProfile, UserProfile
+from backend.app.services.user_service import UserService
+from backend.app.utils.get_current_user import getCurrentUser
+from backend.app.utils.get_supabase_client import getSupabaseClient
 from supabase import Client
 
 router = APIRouter()

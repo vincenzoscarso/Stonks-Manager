@@ -4,7 +4,7 @@ from collections import defaultdict
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.config.configuration import RATE_LIMIT_GENERIC, RATE_LIMIT_AI, RATE_LIMIT_WINDOW_SECONDS
+from backend.app.config.configuration import RATE_LIMIT_GENERIC, RATE_LIMIT_AI, RATE_LIMIT_WINDOW_SECONDS
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
