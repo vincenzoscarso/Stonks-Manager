@@ -41,7 +41,7 @@ def checkLeaks(c: Context):
 
     __printMessageWithSeparator("SCANNING GIT HISTORY FOR SECRETS FROM .ENV")
 
-    env_path = ".env"
+    env_path = "..\\.env"
     if not os.path.exists(env_path):
         print(f"Error: {env_path} not found.")
         return

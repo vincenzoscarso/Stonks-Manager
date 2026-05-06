@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stonks Manager — MyWallet</title>
+    <meta name="description" content="Dashboard personale per gestire entrate, uscite e conti multipli con AI integrata." />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/main.css" />
+
+    <!-- Chart.js (grafico torta dashboard) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Supabase JS SDK (per ottenere JWT) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+    <!-- Variabili Supabase iniettate dal server dal file .env (vedi server.py) -->
+    <script src="/config.js"></script>
+</head>
+<body>
+
+<!-- ============================================================
+     INIZIALIZZAZIONE SUPABASE
+     SUPABASE_URL e SUPABASE_KEY vengono letti dal .env tramite
+     server.py, che li espone come window.SUPABASE_URL e window.SUPABASE_KEY
+     attraverso il file dinamico /config.js
+     ============================================================ -->
+<script>
+    window.sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+</script>
+
+<h1>Stonks Manager</h1>
+
+<!-- ============================================================
+     SEZIONE 1: AUTENTICAZIONE (login / registrazione)
+     Visibile solo quando l'utente NON è loggato
+     ============================================================ -->
+<section id="section-auth">
+    <h2>Accedi o Registrati</h2>
+
+    <div id="auth-error" class="error-msg"></div>
+
+    <!-- TAB LOGIN -->
+    <h3>Login</h3>
+    <div>
+        <label for="login-email">Email:</label>
+        <input type="email" id="login-email" placeholder="tua@email.com" />
+    </div>
+    <div>
+        <label for="login-password">Password:</label>
+        <input type="password" id="login-password" placeholder="Password" />
+    </div>
+    <button id="btn-login" onclick="handleLogin()">Accedi</button>
+
+    <hr style="margin: 16px 0;" />
+
+    <!-- TAB REGISTRAZIONE -->
+    <h3>Registrazione</h3>
+    <div>
+        <label for="reg-displayname">Nome visualizzato:</label>
+        <input type="text" id="reg-displayname" placeholder="Mario Rossi" />
+    </div>
+    <div>
+        <label for="reg-email">Email:</label>
+        <input type="email" id="reg-email" placeholder="tua@email.com" />
+    </div>
+    <div>
+        <label for="reg-password">Password:</label>
+        <input type="password" id="reg-password" placeholder="Almeno 6 caratteri" />
+    </div>
+    <button id="btn-register" onclick="handleRegister()">Registrati</button>
+    <p id="reg-success" style="color: green; display: none;">
+        Registrazione avvenuta! Controlla la tua email per confermare l'account.
+    </p>
+</section>
+
+
+<!-- ============================================================
+     SEZIONE 2: APP PRINCIPALE (visibile solo dopo il login)
+     ============================================================ -->
+<section id="section-app" style="display:none;">
+
+    <!-- Info utente loggato -->
+    <div>
+        <span>Loggato come: <strong id="user-display-name">—</strong></span>
+        &nbsp;
+        <button id="btn-logout" onclick="authLogout()">Logout</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: DASHBOARD
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-dashboard">
+        <h2>Dashboard</h2>
+
+        <!-- Saldo globale -->
+        <h3>Saldo globale (conti inclusi nel totale)</h3>
+        <div id="dashboard-balance">—</div>
+
+        <!-- Grafico a torta -->
+        <h3>Distribuzione per categoria</h3>
+
+        <!-- Selettore periodo -->
+        <div class="radio-group">
+            <strong>Periodo:</strong>
+            <label>
+                <input type="radio" name="dash-period" value="day" onchange="setDashPeriod('day')"> Oggi
+            </label>
+            <label>
+                <input type="radio" name="dash-period" value="week" onchange="setDashPeriod('week')"> Settimana
+            </label>
+            <label>
+                <input type="radio" name="dash-period" value="month" onchange="setDashPeriod('month')" checked> Mese
+            </label>
+            <label>
+                <input type="radio" name="dash-period" value="year" onchange="setDashPeriod('year')"> Anno
+            </label>
+        </div>
+
+        <!-- Selettore tipo grafico -->
+        <div class="radio-group">
+            <strong>Mostra:</strong>
+            <label>
+                <input type="radio" name="dash-chart-type" value="expense" onchange="setDashChartType('expense')" checked> Uscite
+            </label>
+            <label>
+                <input type="radio" name="dash-chart-type" value="income" onchange="setDashChartType('income')"> Entrate
+            </label>
+        </div>
+
+        <canvas id="pie-chart"></canvas>
+
+        <!-- Lista categorie sotto il grafico -->
+        <h3>Dettaglio categorie</h3>
+        <div id="dashboard-category-list">
+            <p>Caricamento...</p>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: GESTIONE CONTI
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-accounts">
+        <h2>Gestione Conti</h2>
+
+        <div id="accounts-error" class="error-msg"></div>
+
+        <!-- Lista conti esistenti -->
+        <h3>I tuoi conti</h3>
+        <div id="accounts-list">
+            <p>Caricamento...</p>
+        </div>
+
+        <!-- Form modifica conto (nascosto di default) -->
+        <div id="edit-account-form" class="hidden-form">
+            <h3>Modifica conto</h3>
+            <input type="hidden" id="edit-account-id" />
+            <div>
+                <label for="edit-account-name">Nome:</label>
+                <input type="text" id="edit-account-name" />
+            </div>
+            <div>
+                <label for="edit-account-include">Includi nel totale:</label>
+                <input type="checkbox" id="edit-account-include" />
+            </div>
+            <button onclick="submitEditAccount()">Salva</button>
+            <button onclick="cancelEditAccount()">Annulla</button>
+        </div>
+
+        <!-- Form elimina conto (nascosto di default) -->
+        <div id="delete-account-form" class="hidden-form">
+            <h3>Elimina conto: <span id="delete-account-name-label"></span></h3>
+            <input type="hidden" id="delete-account-id" />
+            <div>
+                <label for="delete-account-replace">Sposta transazioni su:</label>
+                <select id="delete-account-replace"></select>
+            </div>
+            <button onclick="submitDeleteAccount()">Conferma eliminazione</button>
+            <button onclick="cancelDeleteAccount()">Annulla</button>
+        </div>
+
+        <!-- Form nuovo conto -->
+        <h3>Aggiungi nuovo conto</h3>
+        <div>
+            <label for="new-account-name">Nome:</label>
+            <input type="text" id="new-account-name" placeholder="Es. Contante, Banca, Carta..." />
+        </div>
+        <div>
+            <label for="new-account-include">Includi nel totale globale:</label>
+            <input type="checkbox" id="new-account-include" checked />
+        </div>
+        <button id="btn-add-account" onclick="submitNewAccount()">Crea conto</button>
+
+        <!-- Calcolo saldo combinato -->
+        <h3>Calcola saldo combinato</h3>
+        <p>Seleziona i conti da sommare:</p>
+        <div id="accounts-combine-list"></div>
+        <button onclick="calculateCombinedBalance()">Calcola</button>
+        <span>Saldo combinato: <strong id="combined-balance-result">—</strong></span>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: INSERIMENTO MANUALE TRANSAZIONE
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-new-transaction">
+        <h2>Aggiungi Transazione (manuale)</h2>
+
+        <div id="tx-error" class="error-msg"></div>
+
+        <div class="radio-group">
+            <strong>Tipo:</strong>
+            <label>
+                <input type="radio" name="tx-type" value="expense" checked
+                       onchange="renderCategorySelectsByType()"> Uscita
+            </label>
+            <label>
+                <input type="radio" name="tx-type" value="income"
+                       onchange="renderCategorySelectsByType()"> Entrata
+            </label>
+        </div>
+
+        <div>
+            <label for="tx-amount">Importo (€):</label>
+            <input type="number" id="tx-amount" min="0.01" step="0.01" placeholder="15.00" />
+        </div>
+
+        <div>
+            <label for="tx-date">Data:</label>
+            <input type="date" id="tx-date" />
+        </div>
+
+        <div>
+            <label for="tx-category">Categoria:</label>
+            <select id="tx-category" class="select-category-filtered">
+                <option value="">-- Seleziona categoria --</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="tx-account">Conto:</label>
+            <select id="tx-account" class="select-account">
+                <option value="">-- Seleziona conto --</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="tx-description">Descrizione (opz.):</label>
+            <input type="text" id="tx-description" placeholder="Es. Cena con amici" />
+        </div>
+
+        <button id="btn-add-transaction" onclick="submitNewTransaction()">Aggiungi</button>
+
+        <!-- Form modifica transazione (nascosto di default) -->
+        <div id="edit-tx-form" class="hidden-form">
+            <h3>Modifica transazione</h3>
+            <input type="hidden" id="edit-tx-id" />
+
+            <div class="radio-group">
+                <strong>Tipo:</strong>
+                <label>
+                    <input type="radio" name="edit-tx-type" value="expense"> Uscita
+                </label>
+                <label>
+                    <input type="radio" name="edit-tx-type" value="income"> Entrata
+                </label>
+            </div>
+
+            <div>
+                <label for="edit-tx-amount">Importo (€):</label>
+                <input type="number" id="edit-tx-amount" min="0.01" step="0.01" />
+            </div>
+            <div>
+                <label for="edit-tx-date">Data:</label>
+                <input type="date" id="edit-tx-date" />
+            </div>
+            <div>
+                <label for="edit-tx-category">Categoria:</label>
+                <select id="edit-tx-category"></select>
+            </div>
+            <div>
+                <label for="edit-tx-account">Conto:</label>
+                <select id="edit-tx-account" class="select-account"></select>
+            </div>
+            <div>
+                <label for="edit-tx-description">Descrizione (opz.):</label>
+                <input type="text" id="edit-tx-description" />
+            </div>
+
+            <button onclick="submitEditTransaction()">Salva</button>
+            <button onclick="cancelEditTransaction()">Annulla</button>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: INSERIMENTO INTELLIGENTE AI
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-ai-insert">
+        <h2>Inserimento Intelligente (AI)</h2>
+        <p>Descrivi la spesa in linguaggio naturale e l'AI compilerà i campi per te.</p>
+
+        <div id="ai-error" class="error-msg"></div>
+
+        <div>
+            <label for="quick-insert-text">Messaggio:</label>
+            <input type="text" id="quick-insert-text"
+                   placeholder="Es. Oggi ho speso 15 euro per due pizze con Marco"
+                   style="width: 60%;" />
+        </div>
+        <button id="btn-quick-insert" onclick="runQuickInsert()">Analizza</button>
+        <span id="quick-insert-loading" class="loading">Sto analizzando...</span>
+
+        <!-- Anteprima risultato AI (nascosta finché non arriva risposta) -->
+        <div id="quick-insert-preview">
+            <h3>Anteprima — controlla e modifica prima di confermare</h3>
+
+            <div class="radio-group">
+                <strong>Tipo:</strong>
+                <label><input type="radio" name="qi-type" value="expense"> Uscita</label>
+                <label><input type="radio" name="qi-type" value="income"> Entrata</label>
+            </div>
+            <div>
+                <label for="qi-amount">Importo (€):</label>
+                <input type="number" id="qi-amount" min="0.01" step="0.01" />
+            </div>
+            <div>
+                <label for="qi-date">Data:</label>
+                <input type="date" id="qi-date" />
+            </div>
+            <div>
+                <label for="qi-category">Categoria:</label>
+                <select id="qi-category"></select>
+            </div>
+            <div>
+                <label for="qi-account">Conto:</label>
+                <select id="qi-account"></select>
+            </div>
+            <div>
+                <label for="qi-description">Descrizione:</label>
+                <input type="text" id="qi-description" />
+            </div>
+
+            <button id="btn-confirm-quick-insert" onclick="confirmQuickInsert()">Conferma e salva</button>
+            <button onclick="cancelQuickInsert()">Annulla</button>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: SCAN RICEVUTA (AI)
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-scan-receipt">
+        <h2>Scansiona Ricevuta (AI)</h2>
+        <p>Carica una foto della ricevuta e l'AI la leggerà per te.</p>
+
+        <div>
+            <label for="receipt-file">Immagine ricevuta:</label>
+            <input type="file" id="receipt-file" accept="image/*" />
+        </div>
+        <button id="btn-scan-receipt" onclick="runScanReceipt()">Scansiona</button>
+        <span id="scan-receipt-loading" class="loading">Analisi in corso...</span>
+
+        <!-- Anteprima risultato (nascosta di default) -->
+        <div id="scan-receipt-preview">
+            <h3>Anteprima — controlla e modifica prima di confermare</h3>
+
+            <div class="radio-group">
+                <strong>Tipo:</strong>
+                <label><input type="radio" name="sr-type" value="expense"> Uscita</label>
+                <label><input type="radio" name="sr-type" value="income"> Entrata</label>
+            </div>
+            <div>
+                <label for="sr-amount">Importo (€):</label>
+                <input type="number" id="sr-amount" min="0.01" step="0.01" />
+            </div>
+            <div>
+                <label for="sr-date">Data:</label>
+                <input type="date" id="sr-date" />
+            </div>
+            <div>
+                <label for="sr-category">Categoria:</label>
+                <select id="sr-category"></select>
+            </div>
+            <div>
+                <label for="sr-account">Conto:</label>
+                <select id="sr-account"></select>
+            </div>
+            <div>
+                <label for="sr-description">Descrizione:</label>
+                <input type="text" id="sr-description" />
+            </div>
+
+            <button id="btn-confirm-scan-receipt" onclick="confirmScanReceipt()">Conferma e salva</button>
+            <button onclick="cancelScanReceipt()">Annulla</button>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: STORICO MOVIMENTI
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-history">
+        <h2>Storico Movimenti</h2>
+
+        <div id="transactions-error" class="error-msg"></div>
+
+        <!-- Filtri -->
+        <h3>Filtri</h3>
+        <div>
+            <label for="filter-start-date">Dal:</label>
+            <input type="date" id="filter-start-date" />
+        </div>
+        <div>
+            <label for="filter-end-date">Al:</label>
+            <input type="date" id="filter-end-date" />
+        </div>
+        <div>
+            <label for="filter-category">Categoria:</label>
+            <select id="filter-category" class="select-category">
+                <option value="">-- Tutte --</option>
+            </select>
+        </div>
+        <div>
+            <label for="filter-account">Conto:</label>
+            <select id="filter-account" class="select-account">
+                <option value="">-- Tutti --</option>
+            </select>
+        </div>
+        <div>
+            <label for="filter-type">Tipo:</label>
+            <select id="filter-type">
+                <option value="">-- Tutti --</option>
+                <option value="income">Entrata</option>
+                <option value="expense">Uscita</option>
+            </select>
+        </div>
+
+        <button id="btn-apply-filters" onclick="applyTransactionFilters()">Applica filtri</button>
+        <button id="btn-reset-filters" onclick="resetTransactionFilters()">Reset</button>
+
+        <!-- Tabella -->
+        <table id="transactions-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Categoria</th>
+                    <th>Importo</th>
+                    <th>Conto</th>
+                    <th>Descrizione</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+                <tr><td colspan="7">Caricamento...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOTTO-SEZIONE: GESTIONE CATEGORIE
+         ══════════════════════════════════════════════════════════ -->
+    <section id="section-categories">
+        <h2>Gestione Categorie</h2>
+
+        <div id="categories-error" class="error-msg"></div>
+
+        <!-- Lista categorie -->
+        <h3>Categorie disponibili</h3>
+        <div id="categories-list">
+            <p>Caricamento...</p>
+        </div>
+
+        <!-- Form modifica categoria (nascosto) -->
+        <div id="edit-cat-form" class="hidden-form">
+            <h3>Modifica categoria</h3>
+            <input type="hidden" id="edit-cat-id" />
+            <div>
+                <label for="edit-cat-name">Nome:</label>
+                <input type="text" id="edit-cat-name" />
+            </div>
+            <div>
+                <label for="edit-cat-type">Tipo:</label>
+                <select id="edit-cat-type">
+                    <option value="expense">Uscita (expense)</option>
+                    <option value="income">Entrata (income)</option>
+                </select>
+            </div>
+            <div>
+                <label for="edit-cat-description">Descrizione (opz.):</label>
+                <input type="text" id="edit-cat-description" />
+            </div>
+            <button onclick="submitEditCategory()">Salva</button>
+            <button onclick="cancelEditCategory()">Annulla</button>
+        </div>
+
+        <!-- Form elimina categoria (nascosto) -->
+        <div id="delete-cat-form" class="hidden-form">
+            <h3>Elimina categoria: <span id="delete-cat-name-label"></span></h3>
+            <input type="hidden" id="delete-cat-id" />
+            <div>
+                <label for="delete-cat-replace">Sposta transazioni su:</label>
+                <select id="delete-cat-replace"></select>
+            </div>
+            <button onclick="submitDeleteCategory()">Conferma eliminazione</button>
+            <button onclick="cancelDeleteCategory()">Annulla</button>
+        </div>
+
+        <!-- Form nuova categoria -->
+        <h3>Aggiungi categoria</h3>
+        <div>
+            <label for="new-cat-name">Nome:</label>
+            <input type="text" id="new-cat-name" placeholder="Es. Benzina" />
+        </div>
+        <div>
+            <label for="new-cat-type">Tipo:</label>
+            <select id="new-cat-type">
+                <option value="">-- Seleziona --</option>
+                <option value="expense">Uscita (expense)</option>
+                <option value="income">Entrata (income)</option>
+            </select>
+        </div>
+        <div>
+            <label for="new-cat-description">Descrizione (opz.):</label>
+            <input type="text" id="new-cat-description" placeholder="Breve descrizione" />
+        </div>
+        <button id="btn-add-category" onclick="submitNewCategory()">Crea categoria</button>
+    </section>
+
+</section><!-- fine section-app -->
+
+
+<!-- ============================================================
+     SCRIPT JS (caricati alla fine per trovare il DOM già pronto)
+     ============================================================ -->
+<script src="scripts/api.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/accounts.js"></script>
+<script src="scripts/categories.js"></script>
+<script src="scripts/transactions.js"></script>
+<script src="scripts/dashboard.js"></script>
+<script src="scripts/ai.js"></script>
+
+<script>
+    // ── UTILITY GLOBALI ──────────────────────────────────────────────────────────
+
+    // Formatta un numero come valuta EUR
+    function formatCurrency(amount) {
+        return amount.toFixed(2).replace(".", ",") + " €";
+    }
+
+    // Formatta una data ISO in dd/mm/yyyy
+    function formatDate(isoString) {
+        var d = new Date(isoString);
+        var day   = String(d.getDate()).padStart(2, "0");
+        var month = String(d.getMonth() + 1).padStart(2, "0");
+        var year  = d.getFullYear();
+        return day + "/" + month + "/" + year;
+    }
+
+    // Restituisce la data di oggi nel formato YYYY-MM-DD (per input type=date)
+    function getTodayString() {
+        var d = new Date();
+        var month = String(d.getMonth() + 1).padStart(2, "0");
+        var day   = String(d.getDate()).padStart(2, "0");
+        return d.getFullYear() + "-" + month + "-" + day;
+    }
+
+    // Escape HTML per evitare XSS nel innerHTML
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    // Mostra un messaggio di errore nell'elemento con l'id indicato
+    function showError(elementId, message) {
+        var el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = message;
+        el.style.display = "block";
+    }
+
+    // Nasconde il messaggio di errore
+    function clearError(elementId) {
+        var el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = "";
+        el.style.display = "none";
+    }
+
+    // ── HANDLER LOGIN / REGISTRAZIONE ───────────────────────────────────────────
+
+    async function handleLogin() {
+        var email    = document.getElementById("login-email").value.trim();
+        var password = document.getElementById("login-password").value;
+        clearError("auth-error");
+
+        if (!email || !password) {
+            showError("auth-error", "Inserisci email e password.");
+            return;
+        }
+
+        try {
+            await authLogin(email, password);
+            // authLogin chiama sbClient.auth.signInWithPassword
+            // onAuthStateChange in auth.js gestisce il redirect a showApp()
+        } catch (err) {
+            showError("auth-error", "Login fallito: " + err.message);
+        }
+    }
+
+    async function handleRegister() {
+        var displayName = document.getElementById("reg-displayname").value.trim();
+        var email       = document.getElementById("reg-email").value.trim();
+        var password    = document.getElementById("reg-password").value;
+        clearError("auth-error");
+
+        if (!displayName) {
+            showError("auth-error", "Inserisci il nome visualizzato.");
+            return;
+        }
+        if (!email || !password) {
+            showError("auth-error", "Inserisci email e password.");
+            return;
+        }
+
+        try {
+            await authRegister(email, password, displayName);
+            document.getElementById("reg-success").style.display = "block";
+        } catch (err) {
+            showError("auth-error", "Registrazione fallita: " + err.message);
+        }
+    }
+
+    // ── INIZIALIZZAZIONE APP (chiamata da auth.js dopo il login) ─────────────────
+
+    async function appInit() {
+        // Imposta la data di oggi come default nel form transazione
+        document.getElementById("tx-date").value = getTodayString();
+
+        // Aggiorna il nome utente visualizzato
+        try {
+            var userProfile = await apiGetUser();
+            document.getElementById("user-display-name").textContent = userProfile.display_name;
+        } catch (e) {
+            // Profilo non ancora creato oppure errore non bloccante
+        }
+
+        // Carica dati: prima conti e categorie, poi transazioni
+        // (le transazioni dipendono da conti e categorie per i nomi)
+        await Promise.all([loadAccounts(), loadCategories()]);
+        await loadTransactions();
+    }
+
+    // ── AVVIO ────────────────────────────────────────────────────────────────────
+
+    document.addEventListener("DOMContentLoaded", function () {
+        authInit();
+    });
+</script>
+
+</body>
+</html>

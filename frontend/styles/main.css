@@ -1,0 +1,156 @@
+/* main.css — Stili minimali per leggibilità (nessun design complesso) */
+
+/* Reset base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    background: #f5f5f5;
+    color: #222;
+    padding: 16px;
+}
+
+/* Sezioni principali */
+section {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+h1 { font-size: 1.8em; margin-bottom: 12px; }
+h2 { font-size: 1.3em; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+h3 { font-size: 1.1em; margin: 12px 0 6px 0; }
+
+/* Messaggi di errore */
+.error-msg {
+    color: #cc0000;
+    background: #fff0f0;
+    border: 1px solid #cc0000;
+    padding: 6px 10px;
+    border-radius: 3px;
+    margin: 6px 0;
+    display: none; /* nascosto di default, mostrato da JS */
+}
+.error-msg.visible {
+    display: block;
+}
+
+/* Form */
+label {
+    display: inline-block;
+    min-width: 140px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+    padding: 5px 8px;
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    font-size: 14px;
+    margin: 4px 0;
+}
+
+textarea {
+    width: 100%;
+    height: 60px;
+    resize: vertical;
+}
+
+button {
+    padding: 6px 14px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #e8e8e8;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 4px 2px;
+}
+button:hover {
+    background: #d0d0d0;
+}
+
+/* Tabella storico */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+}
+th {
+    background: #f0f0f0;
+}
+
+/* Saldo dashboard */
+#dashboard-balance {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+/* Canva grafico */
+#pie-chart {
+    max-width: 400px;
+    max-height: 400px;
+}
+
+/* Spinner loading */
+.loading {
+    display: none;
+    color: #555;
+    font-style: italic;
+    margin-left: 8px;
+}
+
+/* Form nascosti (modifica/elimina) — mostrati da JS */
+.hidden-form {
+    display: none;
+    border: 1px dashed #aaa;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 10px;
+    background: #fafafa;
+}
+
+/* Items conti e categorie */
+.account-item, .category-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Radio inline */
+.radio-group label {
+    min-width: auto;
+    margin-right: 16px;
+    font-weight: normal;
+}
+
+/* Preview AI */
+#quick-insert-preview,
+#scan-receipt-preview {
+    display: none;
+    border: 1px dashed #aaa;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 10px;
+    background: #fafafa;
+}

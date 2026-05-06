@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-ENV_PATH = ".\\.env"
+ENV_PATH = "..\\..\\..\\.env"
 
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
