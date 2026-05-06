@@ -4,6 +4,10 @@ now = datetime.now()
 current_year = now.year
 current_date = now.strftime("%Y-%m-%d")
 
+
+## common rules
+
+
 __COMMON_RULES = f"""
 If the year is not specified, use the current year ({current_year}).
 If the day of the week is specified (e.g., 'Saturday'), calculate the correct date relative to today ({current_date}).
@@ -15,6 +19,10 @@ __COMMON_CATEGORY_RULES = f"""
 Here is the list of available categories. Each category has an 'id', 'name', 'type' (income or expense), and 'description'.
 Use the 'type', 'description', and 'name' to choose the most appropriate category. The category type MUST match the transaction type. Return ONLY the 'id' in the JSON.
 """
+
+
+## prompts
+
 
 TEXT_PROMPT = f"""
 You are an expert financial management assistant. Your task is to extract information from a sentence and return a valid JSON for creating a transaction.
