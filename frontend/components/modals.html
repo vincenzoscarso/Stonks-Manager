@@ -209,7 +209,7 @@
 <div id="ai-quick-insert-modal" class="ai-modal-overlay">
     <div class="ai-modal-content">
         <div class="modal-header">
-            <h2>🤖 Inserimento AI</h2>
+            <h2><img src="assets/face.png" id="quick-insert-face" class="spinner-ai slow" alt="AI"> Inserimento AI</h2>
             <button class="modal-close-btn" onclick="closeQuickInsertModal()">✕</button>
         </div>
         <div id="quick-insert-error" class="error-msg"></div>
@@ -231,7 +231,7 @@
 <div id="ai-scan-receipt-modal" class="ai-modal-overlay">
     <div class="ai-modal-content">
         <div class="modal-header">
-            <h2>🧾 Scansiona Scontrino</h2>
+            <h2><img src="assets/face.png" id="scan-receipt-face" class="spinner-ai slow" alt="AI"> Scansiona Scontrino</h2>
             <button class="modal-close-btn" onclick="closeScanReceiptModal()">✕</button>
         </div>
         <div id="scan-receipt-error" class="error-msg"></div>
@@ -239,7 +239,7 @@
             Carica una foto dello scontrino per estrarre i dati.
         </p>
         <div class="form-group">
-            <input type="file" id="receipt-file" accept="image/*" />
+            <input type="file" id="receipt-file" accept="image/*" capture="environment" />
         </div>
         <button id="btn-scan-receipt" class="btn-primary" onclick="runScanReceipt()">
             Scansiona Scontrino

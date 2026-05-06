@@ -4,9 +4,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Stonks Manager — MyWallet</title>
+    <title>Stonks Manager</title>
     <meta name="description"
         content="Dashboard personale per gestire entrate, uscite e conti multipli con AI integrata." />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
 
     <!-- CSS -->
     <link rel="stylesheet" href="styles/main.css" />
@@ -76,6 +79,18 @@
         <!-- PAGE CONTAINER (Injected by loadComponents) -->
         <div class="page-container" id="page-container">
             <!-- dashboard.html, transactions.html, etc. will be injected here -->
+        </div>
+
+        <!-- GLOBAL PAGE LOADER -->
+        <div id="global-page-loader" style="display:flex; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(18,18,18,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+            <img src="assets/face.png" class="spinner-ai large fast" alt="Loading">
+            <p style="margin-top:16px; color:var(--text-muted); font-weight:bold;">Caricamento...</p>
+        </div>
+
+        <!-- GLOBAL AUTH ERROR BANNER -->
+        <div id="global-auth-error" style="display:none; position:fixed; top:0; left:0; right:0; background:var(--color-danger); color:var(--text-primary); padding:16px; text-align:center; z-index:10000; font-weight:bold; box-shadow:var(--shadow-md); align-items:center; justify-content:center; flex-wrap:wrap; gap:12px;">
+            La tua sessione è scaduta o non è più valida.
+            <button onclick="document.getElementById('global-auth-error').style.display='none'; authLogout();" style="padding:8px 16px; border:none; border-radius:var(--radius-sm); background:var(--bg-surface); color:var(--color-danger); cursor:pointer; font-weight:bold; box-shadow:var(--shadow-sm);">Effettua il Login</button>
         </div>
 
     </section>

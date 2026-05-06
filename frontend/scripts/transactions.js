@@ -3,22 +3,22 @@
 let currentFilters = {};
 
 /**
- * Loads transactions applying current filters
+ * Loads ALL transactions from the server and caches them globally.
+ * Then applies local filters to render the transactions list.
  */
-async function loadTransactions(filters = null) {
-    if (filters) currentFilters = filters;
-    
+async function loadTransactions() {
     const container = document.getElementById("transactions-cards-container");
     const errorDiv = document.getElementById("transactions-error");
 
     try {
-        const transactions = await apiGetTransactions(currentFilters);
-        // Save globally for reference (edit/delete)
+        // Fetch all transactions without filters to populate the global state
+        const transactions = await apiGetTransactions();
         window.allTransactions = transactions;
         
-        renderTransactionsCards(transactions);
+        // Render filtered view
+        applyTransactionFilters();
         
-        // Also update dashboard and accounts
+        // Update global components that rely on allTransactions
         if (typeof updateDashboard === "function") updateDashboard();
         if (typeof renderAccountsList === "function") renderAccountsList();
         
@@ -33,7 +33,7 @@ async function loadTransactions(filters = null) {
 }
 
 /**
- * Renders transaction list as Cards (following sketch)
+ * Renders transaction list as Cards
  */
 function renderTransactionsCards(transactions) {
     const container = document.getElementById("transactions-cards-container");
@@ -82,7 +82,7 @@ function renderTransactionsCards(transactions) {
 }
 
 /**
- * Filters
+ * Applies local filters to window.allTransactions and renders the result
  */
 function applyTransactionFilters() {
     currentFilters = {
@@ -92,7 +92,26 @@ function applyTransactionFilters() {
         accountId:  document.getElementById("filter-account").value || null,
         type:       document.getElementById("filter-type").value || null
     };
-    loadTransactions();
+    
+    let filtered = [...(window.allTransactions || [])];
+    
+    if (currentFilters.startDate) {
+        filtered = filtered.filter(t => t.date.substring(0, 10) >= currentFilters.startDate);
+    }
+    if (currentFilters.endDate) {
+        filtered = filtered.filter(t => t.date.substring(0, 10) <= currentFilters.endDate);
+    }
+    if (currentFilters.categoryId) {
+        filtered = filtered.filter(t => t.category_id === currentFilters.categoryId);
+    }
+    if (currentFilters.accountId) {
+        filtered = filtered.filter(t => t.account_id === currentFilters.accountId);
+    }
+    if (currentFilters.type) {
+        filtered = filtered.filter(t => t.type === currentFilters.type);
+    }
+    
+    renderTransactionsCards(filtered);
 }
 
 function resetTransactionFilters() {

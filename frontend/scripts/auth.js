@@ -304,6 +304,9 @@ function showLoginSection() {
     // Hide FAB group on login page
     var fab = document.getElementById("fab-group");
     if (fab) fab.style.display = "none";
+    // Hide global loader if present
+    var loader = document.getElementById("global-page-loader");
+    if (loader) loader.style.display = "none";
 }
 
 function showApp() {

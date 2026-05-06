@@ -5,8 +5,15 @@ const BACKEND_URL = `http://${BACKEND_HOST}:8000`;
 const API_PREFIX  = "/api";   // prefix for accounts, categories, transactions, users
 const AI_PREFIX   = "/ai";    // prefix for quick-insert, scan-receipt
 
-// Retrieve JWT token saved in localStorage (put by auth.js)
-function getToken() {
+// Retrieve JWT token, proactively refreshing it if needed via Supabase SDK
+async function getToken() {
+    if (window.sbClient && window.sbClient.auth) {
+        const { data, error } = await window.sbClient.auth.getSession();
+        if (data && data.session) {
+            localStorage.setItem("sb_access_token", data.session.access_token);
+            return data.session.access_token;
+        }
+    }
     return localStorage.getItem("sb_access_token");
 }
 
@@ -14,7 +21,7 @@ function getToken() {
 // method: "GET", "POST", "PUT", "DELETE"
 // body: JS object (automatically converted to JSON)
 async function apiFetch(path, method, body) {
-    const token = getToken();
+    const token = await getToken();
 
     var options = {
         method: method,
@@ -40,6 +47,13 @@ async function apiFetch(path, method, body) {
     }
 
     if (!response.ok) {
+        // Global Auth Error Handling
+        if (response.status === 401 || response.status === 403) {
+            var banner = document.getElementById("global-auth-error");
+            if (banner) banner.style.display = "flex";
+            throw new Error("Sessione scaduta. Effettua nuovamente l'accesso.");
+        }
+
         var errorData = await response.json().catch(function () { return {}; });
 
         // Rate Limit
@@ -63,7 +77,7 @@ async function apiFetch(path, method, body) {
 
 // Special version for file upload (multipart/form-data — scan receipt)
 async function apiFetchFile(path, formData) {
-    const token = getToken();
+    const token = await getToken();
 
     var options = {
         method: "POST",
@@ -83,6 +97,13 @@ async function apiFetchFile(path, formData) {
     }
 
     if (!response.ok) {
+        // Global Auth Error Handling
+        if (response.status === 401 || response.status === 403) {
+            var banner = document.getElementById("global-auth-error");
+            if (banner) banner.style.display = "flex";
+            throw new Error("Sessione scaduta. Effettua nuovamente l'accesso.");
+        }
+
         var errorData = await response.json().catch(function () { return {}; });
 
         // Rate Limit

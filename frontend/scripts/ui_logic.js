@@ -96,35 +96,41 @@ function toggleSidebar() {
  * @param {string} pageId - Page identifier to show (e.g. "dashboard", "history").
  */
 function showPage(pageId) {
-    // Hide all pages
-    const pages = document.querySelectorAll(".page");
-    pages.forEach(p => {
-        p.style.display = "none";
-        p.classList.remove("active");
-    });
+    const loader = document.getElementById("global-page-loader");
+    if (loader) loader.style.display = "flex";
 
-    // Show requested page
-    const target = document.getElementById("page-" + pageId);
-    if (target) {
-        target.style.display = "block";
-        target.classList.add("active");
-    }
+    // A small timeout to show the fast spinning Gemini face during page transitions
+    setTimeout(() => {
+        // Hide all pages
+        const pages = document.querySelectorAll(".page");
+        pages.forEach(p => {
+            p.style.display = "none";
+            p.classList.remove("active");
+        });
 
-    // Manage FAB group visibility (only on dashboard)
-    const fab = document.getElementById("fab-group");
-    if (fab) {
-        if (pageId === "dashboard") {
-            fab.style.display = "flex";
-        } else {
-            fab.style.display = "none";
+        // Show requested page
+        const target = document.getElementById("page-" + pageId);
+        if (target) {
+            target.style.display = "block";
+            target.classList.add("active");
+
+            // Manage FAB group visibility (only on dashboard)
+            const fab = document.getElementById("fab-group");
+            if (fab) {
+                fab.style.display = (pageId === "dashboard") ? "flex" : "none";
+            }
         }
-    }
 
-    // Close sidebar if open on mobile
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar && sidebar.classList.contains("open")) {
-        toggleSidebar();
-    }
+        // Close sidebar if open on mobile
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+        if (sidebar && sidebar.classList.contains("open")) {
+            sidebar.classList.remove("open");
+            overlay.classList.remove("visible");
+        }
+
+        if (loader) loader.style.display = "none";
+    }, 250);
 }
 
 

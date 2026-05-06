@@ -4,15 +4,15 @@
 
 <!-- Filters -->
 <div class="filters-container">
-    <input type="date" id="filter-start-date" placeholder="Dal" />
-    <input type="date" id="filter-end-date" placeholder="Al" />
-    <select id="filter-category" class="select-category">
+    <input type="date" id="filter-start-date" placeholder="Dal" onchange="applyTransactionFilters()" />
+    <input type="date" id="filter-end-date" placeholder="Al" onchange="applyTransactionFilters()" />
+    <select id="filter-category" class="select-category" onchange="applyTransactionFilters()">
         <option value="">-- Categorie --</option>
     </select>
-    <select id="filter-account" class="select-account">
+    <select id="filter-account" class="select-account" onchange="applyTransactionFilters()">
         <option value="">-- Conti --</option>
     </select>
-    <select id="filter-type">
+    <select id="filter-type" onchange="applyTransactionFilters()">
         <option value="">-- Tipo --</option>
         <option value="income">Entrata</option>
         <option value="expense">Uscita</option>

@@ -5,43 +5,59 @@
     --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
     /* ── Background Colors ── */
-    --bg-body: #f0f2f5;
-    --bg-surface: #ffffff;          /* Cards, modals, headers */
-    --bg-surface-hover: #f0f2f5;    /* Hover in menus or lists */
+    --bg-body: #121212;
+    --bg-surface: #1e1e1e;          /* Cards, modals, headers */
+    --bg-surface-hover: #2d2d2d;    /* Hover in menus or lists */
     
     /* ── Text Colors ── */
-    --text-primary: #1c1e21;        /* Headings and main text */
-    --text-secondary: #4b4f56;      /* Form labels, descriptions */
-    --text-muted: #65676b;          /* Disabled text or subtitles */
-    --text-light: #8d949e;          /* Character counters etc. */
-    --text-on-primary: #ffffff;     /* Text on blue/red/green buttons */
+    --text-primary: #f9fafb;        /* Headings and main text */
+    --text-secondary: #d1d5db;      /* Form labels, descriptions */
+    --text-muted: #9ca3af;          /* Disabled text or subtitles */
+    --text-light: #6b7280;          /* Character counters etc. */
+    --text-on-primary: #121212;     /* Inverted text for primary buttons */
     
     /* ── UI Colors (Brand & Actions) ── */
-    --color-primary: #007bff;
-    --color-primary-hover: #0069d9;
+    --color-primary: #4db8ff;
+    --color-primary-hover: #0099ff;
     
-    --color-secondary: #6c757d;
+    --color-secondary: #4b5563;
     
-    --color-danger: #dc3545;        /* Delete buttons, expense text */
-    --color-danger-dark: #cc0000;   /* Text errors in forms */
-    --bg-danger-light: #fff0f0;     /* Error box background */
+    --color-danger: #db2b2b;        /* Delete buttons, expense text */
+    --color-danger-dark: #ac0000;   /* Text errors in forms */
+    --bg-danger-light: #451a1a;     /* Error box background */
     
-    --color-success: #28a745;       /* Income text, success messages */
+    --color-success: #34d399;       /* Income text, success messages */
     
     /* ── Borders and Dividers ── */
-    --border-color-light: #f0f2f5;
-    --border-color: #e1e4e8;
-    --border-color-input: #d1d5db;
+    --border-color-light: #2d2d2d;
+    --border-color: #334155;
+    --border-color-input: #4b5563;
     
     /* ── Shadows ── */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.22);
-    --shadow-overlay: rgba(0, 0, 0, 0.6);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+    --shadow-overlay: rgba(0, 0, 0, 0.8);
     
     /* ── Border Radius ── */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-pill: 50px;
+}
+
+/* Fix for global loader background in dark theme (overriding inline style in index.html) */
+#global-page-loader {
+    background: rgba(18, 18, 18, 0.9) !important;
+}
+
+/* Ensure secondary buttons and other specific elements look good in dark mode */
+.btn-secondary {
+    background: var(--bg-surface-hover) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-secondary:hover {
+    background: #3a3b3c !important;
 }

@@ -38,7 +38,11 @@ async function runQuickInsert() {
 
     errorDiv.style.display = "none";
     btn.disabled = true;
-    loading.style.display = "inline";
+    loading.style.display = "flex";
+
+    // Change spin speed
+    const face = document.getElementById("quick-insert-face");
+    if (face) { face.classList.remove("slow"); face.classList.add("fast"); }
 
     try {
         const result = await apiQuickInsert(text);
@@ -61,6 +65,7 @@ async function runQuickInsert() {
     } finally {
         btn.disabled = false;
         loading.style.display = "none";
+        if (face) { face.classList.remove("fast"); face.classList.add("slow"); }
     }
 }
 
@@ -82,6 +87,47 @@ function closeScanReceiptModal() {
     modal.classList.remove("visible");
 }
 
+// Helper function to compress images before upload (especially for mobile cameras)
+async function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(blob => {
+                    resolve(new File([blob], "receipt.jpg", { type: "image/jpeg" }));
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+    });
+}
+
 async function runScanReceipt() {
     const fileInput = document.getElementById("receipt-file");
     const btn       = document.getElementById("btn-scan-receipt");
@@ -96,10 +142,26 @@ async function runScanReceipt() {
 
     errorDiv.style.display = "none";
     btn.disabled = true;
-    loading.style.display = "inline";
+    loading.style.display = "flex";
+
+    // Change spin speed
+    const face = document.getElementById("scan-receipt-face");
+    if (face) { face.classList.remove("slow"); face.classList.add("fast"); }
 
     try {
-        const result = await apiScanReceipt(fileInput.files[0]);
+        const originalFile = fileInput.files[0];
+        let fileToUpload = originalFile;
+        
+        try {
+            // Compress if it's an image
+            if (originalFile.type.startsWith('image/')) {
+                fileToUpload = await compressImage(originalFile);
+            }
+        } catch (e) {
+            console.warn("Compression failed, using original file", e);
+        }
+
+        const result = await apiScanReceipt(fileToUpload);
 
         // Close AI modal and open pre-populated transaction modal
         closeScanReceiptModal();
@@ -119,6 +181,7 @@ async function runScanReceipt() {
     } finally {
         btn.disabled = false;
         loading.style.display = "none";
+        if (face) { face.classList.remove("fast"); face.classList.add("slow"); }
     }
 }
 

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 SEPARATOR = "-" * 90
 MAIN_FILE = ".\\backend\\app\\main.py"
 PYTHON = ".venv\\Scripts\\python.exe"
-ENV_PATH = "..\\.env"
+ENV_PATH = ".\\.env"
 
 
 @task

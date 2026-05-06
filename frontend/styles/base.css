@@ -55,4 +55,33 @@ h3 {
     font-style: italic;
     font-size: 0.9em;
     margin-top: 8px;
+    align-items: center;
+    gap: 8px;
+}
+
+/* AI Spinner */
+.spinner-ai {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%; /* Make it round */
+    object-fit: cover;
+    display: inline-block;
+}
+
+.spinner-ai.large {
+    width: 80px;
+    height: 80px;
+}
+
+.spinner-ai.fast {
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner-ai.slow {
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
