@@ -31,6 +31,16 @@ function showPage(pageId) {
         target.classList.add("active");
     }
 
+    // Gestione visibilità del FAB group (solo su dashboard)
+    const fab = document.getElementById("fab-group");
+    if (fab) {
+        if (pageId === "dashboard") {
+            fab.style.display = "flex";
+        } else {
+            fab.style.display = "none";
+        }
+    }
+
     // Chiudi la sidebar se è aperta su mobile
     const sidebar = document.getElementById("sidebar");
     if (sidebar && sidebar.classList.contains("open")) {
