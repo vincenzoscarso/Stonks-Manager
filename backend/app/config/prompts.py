@@ -2,6 +2,8 @@ from datetime import datetime
 
 now = datetime.now()
 current_year = now.year
+current_month = now.month
+current_day = now.day
 current_date = now.strftime("%Y-%m-%d")
 
 
@@ -9,10 +11,13 @@ current_date = now.strftime("%Y-%m-%d")
 
 
 __COMMON_RULES = f"""
-If the year is not specified, use the current year ({current_year}).
-If the day of the week is specified (e.g., 'Saturday'), calculate the correct date relative to today ({current_date}).
-If you cannot determine a value return null.
-If you can't determine a specific category, try to find the best match based on description and name, or return null if uncertain.
+Calculate the date for the most recent past occurrence if only a day of the week is provided.
+Use {current_year} as the default year if none is specified.
+Use {current_month} as the default month if none is specified.
+Use {current_day} as the default day if none is specified.
+Ensure all calculated dates are strictly prior to {current_date}.
+Select the best matching category based on name and description. Choose the default categories "Altre entrate" or "Altre uscite" if none match.
+Return null if a value cannot be determined or is uncertain.
 """
 
 __COMMON_CATEGORY_RULES = f"""
