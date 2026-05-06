@@ -1,0 +1,22 @@
+<!-- profile.html -->
+<h2>Profilo Utente</h2>
+<div id="profile-error" class="error-msg"></div>
+<div id="profile-success" style="display:none; color: var(--color-success); margin-bottom: 10px;">
+    Profilo aggiornato!
+</div>
+
+<div class="form-group">
+    <label for="profile-display-name">Nome visualizzato:</label>
+    <input type="text" id="profile-display-name" maxlength="255" />
+</div>
+
+<div class="form-group">
+    <label for="profile-email">Email (sola lettura):</label>
+    <input type="text" id="profile-email" disabled style="background:var(--border-color-light); color:var(--text-muted);" />
+</div>
+
+<button class="btn-primary" onclick="submitEditProfile()">Salva Modifiche</button>
+
+<hr style="margin:30px 0; border:none; border-top:1px solid var(--border-color);" />
+
+<button class="btn-danger" style="width:100%" onclick="openDeleteProfileModal()">Elimina Account Definitivamente</button>

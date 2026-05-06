@@ -1,9 +1,9 @@
-// transactions.js — Gestione storico movimenti con visualizzazione a Card
+// transactions.js — History management with Card visualization
 
 let currentFilters = {};
 
 /**
- * Carica le transazioni applicando i filtri attuali
+ * Loads transactions applying current filters
  */
 async function loadTransactions(filters = null) {
     if (filters) currentFilters = filters;
@@ -13,12 +13,12 @@ async function loadTransactions(filters = null) {
 
     try {
         const transactions = await apiGetTransactions(currentFilters);
-        // Salviamo globalmente per reference (modifica/elimina)
+        // Save globally for reference (edit/delete)
         window.allTransactions = transactions;
         
         renderTransactionsCards(transactions);
         
-        // Aggiorna anche dashboard e conti
+        // Also update dashboard and accounts
         if (typeof updateDashboard === "function") updateDashboard();
         if (typeof renderAccountsList === "function") renderAccountsList();
         
@@ -33,7 +33,7 @@ async function loadTransactions(filters = null) {
 }
 
 /**
- * Renderizza la lista di transazioni come Card (seguendo lo schizzo)
+ * Renders transaction list as Cards (following sketch)
  */
 function renderTransactionsCards(transactions) {
     const container = document.getElementById("transactions-cards-container");
@@ -43,20 +43,20 @@ function renderTransactionsCards(transactions) {
         return;
     }
 
-    // Ordina per data decrescente (più recenti in alto)
+    // Order by descending date (newest top)
     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    container.innerHTML = ""; // Pulisce il container
+    container.innerHTML = ""; // Clears the container
 
     transactions.forEach(tx => {
         const card = document.createElement("div");
         card.className = "transaction-card";
 
-        // Formattazione data italiana (DD/MM/YYYY)
+        // European date formatting (DD/MM/YYYY)
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString("it-IT");
 
-        // Trova nome categoria e conto
+        // Find category and account name
         const catName = getCategoryName(tx.category_id);
         const accName = getAccountName(tx.account_id);
 
@@ -82,7 +82,7 @@ function renderTransactionsCards(transactions) {
 }
 
 /**
- * Filtri
+ * Filters
  */
 function applyTransactionFilters() {
     currentFilters = {
@@ -106,17 +106,17 @@ function resetTransactionFilters() {
 }
 
 /**
- * Modifica: recupera i dati e apre il Modal
+ * Edit: retrieve data and open Modal
  */
 async function editTransaction(id) {
     const tx = window.allTransactions.find(t => t.id === id);
     if (tx) {
-        // Prepariamo i dati per il modal
+        // Prepare data for modal
         const modalData = {
             id: tx.id,
             type: tx.type,
             amount: tx.amount,
-            date: tx.date.substring(0, 10), // formato YYYY-MM-DD
+            date: tx.date.substring(0, 10), // YYYY-MM-DD format
             category_id: tx.category_id,
             account_id: tx.account_id,
             description: tx.description
@@ -126,22 +126,22 @@ async function editTransaction(id) {
 }
 
 /**
- * Elimina
+ * Delete
  */
 async function deleteTransaction(id) {
     if (!confirm("Sei sicuro di voler eliminare questa transazione?")) return;
 
     try {
         await apiDeleteTransaction(id);
-        loadAccounts(); // aggiorna saldi
-        loadTransactions(); // aggiorna lista
+        loadAccounts(); // update balances
+        loadTransactions(); // update list
     } catch (err) {
         alert("Errore nell'eliminazione: " + err.message);
     }
 }
 
 /**
- * Utility per nomi (fallback se i dati non sono ancora arrivati)
+ * Name utility (fallback if data not arrived yet)
  */
 function getCategoryName(categoryId) {
     const cat = window.allCategories ? window.allCategories.find(c => c.id === categoryId) : null;

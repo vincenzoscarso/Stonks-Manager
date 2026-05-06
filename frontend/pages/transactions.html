@@ -1,0 +1,29 @@
+<!-- transactions.html -->
+<h2>Storico Movimenti</h2>
+<div id="transactions-error" class="error-msg"></div>
+
+<!-- Filters -->
+<div class="filters-container">
+    <input type="date" id="filter-start-date" placeholder="Dal" />
+    <input type="date" id="filter-end-date" placeholder="Al" />
+    <select id="filter-category" class="select-category">
+        <option value="">-- Categorie --</option>
+    </select>
+    <select id="filter-account" class="select-account">
+        <option value="">-- Conti --</option>
+    </select>
+    <select id="filter-type">
+        <option value="">-- Tipo --</option>
+        <option value="income">Entrata</option>
+        <option value="expense">Uscita</option>
+    </select>
+    <div class="filter-buttons">
+        <button class="btn-primary" onclick="applyTransactionFilters()">Applica</button>
+        <button class="btn-secondary" onclick="resetTransactionFilters()">Reset</button>
+    </div>
+</div>
+
+<!-- Cards Container -->
+<div id="transactions-cards-container">
+    <p>Caricamento...</p>
+</div>

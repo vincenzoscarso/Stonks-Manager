@@ -1,10 +1,10 @@
-// ai.js — Modal AI: Inserimento Rapido e Scansione Scontrino
-// Ogni modal ha errori completamente isolati dall'altro.
+// ai.js — AI Modals: Quick Insert and Scan Receipt
+// Each modal has completely isolated errors.
 
-// ── INSERIMENTO RAPIDO ────────────────────────────────────────────────────────
+// ── QUICK INSERT ──────────────────────────────────────────────────────────────
 
 function openQuickInsertModal() {
-    // Chiudi l'altro modal AI se fosse aperto
+    // Close the other AI modal if open
     document.getElementById("ai-scan-receipt-modal").classList.remove("visible");
     document.getElementById("ai-scan-receipt-modal").style.display = "none";
 
@@ -25,11 +25,11 @@ async function runQuickInsert() {
     const text    = input.value.trim();
     const btn     = document.getElementById("btn-quick-insert");
     const loading = document.getElementById("quick-insert-loading");
-    const errorDiv = document.getElementById("quick-insert-error"); // errore ISOLATO
+    const errorDiv = document.getElementById("quick-insert-error"); // ISOLATED error
 
     if (!text) return;
 
-    // Validazione lunghezza prompt
+    // Prompt length validation
     if (text.length > 256) {
         errorDiv.innerText = "Il messaggio è troppo lungo (max 256 caratteri).";
         errorDiv.style.display = "block";
@@ -43,7 +43,7 @@ async function runQuickInsert() {
     try {
         const result = await apiQuickInsert(text);
 
-        // Chiudi il modal AI e apri il modal transazione pre-popolato
+        // Close AI modal and open pre-populated transaction modal
         closeQuickInsertModal();
         openTransactionModal("add", {
             type:        result.type,
@@ -64,10 +64,10 @@ async function runQuickInsert() {
     }
 }
 
-// ── SCANSIONE SCONTRINO ───────────────────────────────────────────────────────
+// ── SCAN RECEIPT ──────────────────────────────────────────────────────────────
 
 function openScanReceiptModal() {
-    // Chiudi l'altro modal AI se fosse aperto
+    // Close the other AI modal if open
     document.getElementById("ai-quick-insert-modal").classList.remove("visible");
     document.getElementById("ai-quick-insert-modal").style.display = "none";
 
@@ -86,7 +86,7 @@ async function runScanReceipt() {
     const fileInput = document.getElementById("receipt-file");
     const btn       = document.getElementById("btn-scan-receipt");
     const loading   = document.getElementById("scan-receipt-loading");
-    const errorDiv  = document.getElementById("scan-receipt-error"); // errore ISOLATO
+    const errorDiv  = document.getElementById("scan-receipt-error"); // ISOLATED error
 
     if (!fileInput.files || fileInput.files.length === 0) {
         errorDiv.innerText = "Seleziona prima un'immagine.";
@@ -101,7 +101,7 @@ async function runScanReceipt() {
     try {
         const result = await apiScanReceipt(fileInput.files[0]);
 
-        // Chiudi il modal AI e apri il modal transazione pre-popolato
+        // Close AI modal and open pre-populated transaction modal
         closeScanReceiptModal();
         openTransactionModal("add", {
             type:        result.type || "expense",
@@ -122,7 +122,7 @@ async function runScanReceipt() {
     }
 }
 
-// ── CHAR COUNTER QUICK INSERT ─────────────────────────────────────────────────
+// ── QUICK INSERT CHAR COUNTER ─────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", function () {
     var aiText = document.getElementById("quick-insert-text");

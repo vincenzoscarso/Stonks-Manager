@@ -1,9 +1,83 @@
 /**
- * ui_logic.js — Logica centralizzata per l'interfaccia (Navigazione SPA, Modal Transazione, Errori)
+ * ui_logic.js — Centralized logic for interface (SPA Navigation, Transaction Modal, Errors)
  */
 
-// ── NAVIGAZIONE SPA ───────────────────────────────────────────────────────────
+/**
+ * ui_logic.js — Centralized interface logic (SPA Navigation, Modals, Errors)
+ */
 
+// ── DYNAMIC HTML LOADING ─────────────────────────────────────────────────────
+
+/**
+ * Asynchronously loads HTML files for pages and components.
+ * Injects HTML into respective containers or directly to body for modals.
+ */
+async function loadComponents() {
+    const pages = [
+        { id: 'dashboard', path: 'pages/dashboard.html', container: 'page-container', classes: 'page' },
+        { id: 'history', path: 'pages/transactions.html', container: 'page-container', classes: 'page' },
+        { id: 'accounts', path: 'pages/accounts.html', container: 'page-container', classes: 'page' },
+        { id: 'categories', path: 'pages/categories.html', container: 'page-container', classes: 'page' },
+        { id: 'profile', path: 'pages/profile.html', container: 'page-container', classes: 'page' },
+        { id: 'auth', path: 'pages/auth.html', container: 'section-auth', classes: '' }
+    ];
+
+    const components = [
+        { path: 'components/modals.html', container: 'body' },
+        { path: 'components/fab.html', container: 'body' }
+    ];
+
+    try {
+        // Load pages
+        for (let p of pages) {
+            let html = await fetch(p.path).then(r => r.text());
+            let targetDiv = (p.id === 'auth') ? document.getElementById(p.container) : null;
+            
+            if (!targetDiv) {
+                targetDiv = document.createElement('div');
+                targetDiv.id = `page-${p.id}`;
+                if (p.classes) targetDiv.className = p.classes;
+                targetDiv.style.display = 'none'; // hidden by default
+                document.getElementById(p.container).appendChild(targetDiv);
+            }
+            targetDiv.innerHTML = html;
+        }
+
+        // Load components (modals and FAB)
+        for (let c of components) {
+            let html = await fetch(c.path).then(r => r.text());
+            let div = document.createElement('div');
+            div.innerHTML = html;
+            // Move div children to target
+            const target = (c.container === 'body') ? document.body : document.getElementById(c.container);
+            while (div.firstChild) {
+                target.appendChild(div.firstChild);
+            }
+        }
+        
+        // Bind events depending on newly loaded HTML
+        bindDynamicEvents();
+
+        console.log("Componenti HTML caricati con successo.");
+    } catch (e) {
+        console.error("Errore nel caricamento dei componenti HTML:", e);
+    }
+}
+
+/**
+ * Binds event listeners to dynamically loaded elements.
+ */
+function bindDynamicEvents() {
+    const desc = document.getElementById("modal-tx-description");
+    if (desc) desc.addEventListener("input", updateCharCount);
+}
+
+
+// ── SPA NAVIGATION ───────────────────────────────────────────────────────────
+
+/**
+ * Opens or closes lateral menu (Sidebar) and manages mobile overlay.
+ */
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("sidebar-overlay");
@@ -16,22 +90,27 @@ function toggleSidebar() {
     }
 }
 
+/**
+ * Handles page change in Single Page Application.
+ * Hides all views and shows only the requested one.
+ * @param {string} pageId - Page identifier to show (e.g. "dashboard", "history").
+ */
 function showPage(pageId) {
-    // Nascondi tutte le pagine
+    // Hide all pages
     const pages = document.querySelectorAll(".page");
     pages.forEach(p => {
         p.style.display = "none";
         p.classList.remove("active");
     });
 
-    // Mostra la pagina richiesta
+    // Show requested page
     const target = document.getElementById("page-" + pageId);
     if (target) {
         target.style.display = "block";
         target.classList.add("active");
     }
 
-    // Gestione visibilità del FAB group (solo su dashboard)
+    // Manage FAB group visibility (only on dashboard)
     const fab = document.getElementById("fab-group");
     if (fab) {
         if (pageId === "dashboard") {
@@ -41,7 +120,7 @@ function showPage(pageId) {
         }
     }
 
-    // Chiudi la sidebar se è aperta su mobile
+    // Close sidebar if open on mobile
     const sidebar = document.getElementById("sidebar");
     if (sidebar && sidebar.classList.contains("open")) {
         toggleSidebar();
@@ -49,7 +128,7 @@ function showPage(pageId) {
 }
 
 
-// ── MODAL TRANSAZIONE ─────────────────────────────────────────────────────────
+// ── TRANSACTION MODAL ─────────────────────────────────────────────────────────────
 
 let currentModalMode = "add";
 
@@ -186,15 +265,15 @@ function clearFieldErrors() {
     });
 }
 
+/**
+ * Updates character counter for transaction description.
+ */
 function updateCharCount() {
-    const len = document.getElementById("modal-tx-description").value.length;
-    document.getElementById("char-count").innerText = len;
+    const el = document.getElementById("modal-tx-description");
+    if (el) {
+        document.getElementById("char-count").innerText = el.value.length;
+    }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    const desc = document.getElementById("modal-tx-description");
-    if (desc) desc.addEventListener("input", updateCharCount);
-});
 
 async function saveTransactionFromModal() {
     if (!validateModalData()) return;

@@ -1,18 +1,18 @@
-// api.js — Wrapper centralizzato per tutte le chiamate al backend
-// Rileva automaticamente l'IP per permettere il funzionamento da telefono nella stessa rete
+// api.js — Centralized wrapper for all backend calls
+// Automatically detect IP to allow phone operation on the same network
 const BACKEND_HOST = window.location.hostname || "localhost";
 const BACKEND_URL = `http://${BACKEND_HOST}:8000`;
-const API_PREFIX  = "/api";   // prefisso per accounts, categories, transactions, users
-const AI_PREFIX   = "/ai";    // prefisso per quick-insert, scan-receipt
+const API_PREFIX  = "/api";   // prefix for accounts, categories, transactions, users
+const AI_PREFIX   = "/ai";    // prefix for quick-insert, scan-receipt
 
-// Recupera il token JWT salvato in localStorage (messo da auth.js)
+// Retrieve JWT token saved in localStorage (put by auth.js)
 function getToken() {
     return localStorage.getItem("sb_access_token");
 }
 
-// Funzione base per fare fetch con Authorization header
+// Base function to fetch with Authorization header
 // method: "GET", "POST", "PUT", "DELETE"
-// body: oggetto JS (viene convertito in JSON automaticamente)
+// body: JS object (automatically converted to JSON)
 async function apiFetch(path, method, body) {
     const token = getToken();
 
@@ -35,7 +35,7 @@ async function apiFetch(path, method, body) {
     try {
         response = await fetch(BACKEND_URL + path, options);
     } catch (networkErr) {
-        // Errore di rete (server offline, timeout, CORS, ecc.)
+        // Network error (server offline, timeout, CORS, etc.)
         throw new Error("Impossibile contattare il server. Controlla la connessione.");
     }
 
@@ -46,7 +46,7 @@ async function apiFetch(path, method, body) {
         if (response.status === 429) {
             throw new Error("⚠️ Limite di richieste raggiunto. Riprova tra qualche minuto.");
         }
-        // Timeout / servizio AI non disponibile
+        // Timeout / AI service not available
         if (response.status === 503 || response.status === 504) {
             throw new Error("Servizio AI non disponibile, riprova tra qualche istante.");
         }
@@ -55,13 +55,13 @@ async function apiFetch(path, method, body) {
         throw new Error(message);
     }
 
-    // DELETE restituisce spesso body vuoto, gestiamolo
+    // DELETE often returns empty body, handle it
     var text = await response.text();
     if (!text) return null;
     return JSON.parse(text);
 }
 
-// Versione speciale per upload file (multipart/form-data — scan ricevuta)
+// Special version for file upload (multipart/form-data — scan receipt)
 async function apiFetchFile(path, formData) {
     const token = getToken();
 
@@ -89,7 +89,7 @@ async function apiFetchFile(path, formData) {
         if (response.status === 429) {
             throw new Error("⚠️ Limite di richieste raggiunto. Riprova tra qualche minuto.");
         }
-        // Timeout / servizio AI non disponibile
+        // Timeout / AI service not available
         if (response.status === 503 || response.status === 504) {
             throw new Error("Servizio AI non disponibile, riprova tra qualche istante.");
         }
@@ -161,7 +161,7 @@ function apiDeleteCategory(categoryId, replaceWithId) {
 
 // ── TRANSACTIONS ──────────────────────────────────────────────────────────────
 
-// filters: oggetto con campi opzionali { startDate, endDate, categoryId, accountId, type }
+// filters: object with optional fields { startDate, endDate, categoryId, accountId, type }
 function apiGetTransactions(filters) {
     var params = new URLSearchParams();
     if (filters) {

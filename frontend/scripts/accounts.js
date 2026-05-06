@@ -1,23 +1,23 @@
-// accounts.js — Gestione conti (CRUD) e calcolo saldo combinato
+// accounts.js — Accounts management (CRUD) and combined balance calculation
 
-// ── STATO ─────────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
 
-var allAccounts = []; // array di oggetti account [{id, name, include_in_total}]
-var allTransactions = []; // cache delle transazioni — popolata da transactions.js
+var allAccounts = []; // array of account objects [{id, name, include_in_total}]
+var allTransactions = []; // transactions cache — populated by transactions.js
 
-// ── CARICAMENTO ───────────────────────────────────────────────────────────────
+// ── LOADING ───────────────────────────────────────────────────────────────────
 
 async function loadAccounts() {
     try {
         allAccounts = await apiGetAccounts();
         renderAccountsList();
-        renderAccountSelects(); // aggiorna tutti i <select> con i conti
+        renderAccountSelects(); // update all <select> with accounts
     } catch (err) {
         showError("accounts-error", err.message);
     }
 }
 
-// ── RENDER LISTA CONTI ────────────────────────────────────────────────────────
+// ── RENDER ACCOUNTS LIST ──────────────────────────────────────────────────────
 
 function renderAccountsList() {
     var container = document.getElementById("accounts-list");
@@ -73,10 +73,10 @@ function renderAccountsList() {
     });
 }
 
-// ── CALCOLO SALDO ─────────────────────────────────────────────────────────────
+// ── BALANCE CALCULATION ───────────────────────────────────────────────────────
 
-// Calcola il saldo di UN singolo conto sommando le sue transazioni (da cache)
-// amount è sempre positivo, il segno dipende dal type
+// Calculate balance of a single account by summing its transactions (from cache)
+// amount is always positive, sign depends on type
 function calculateAccountBalance(accountId) {
     var balance = 0;
     allTransactions.forEach(function (t) {
@@ -91,7 +91,7 @@ function calculateAccountBalance(accountId) {
     return balance;
 }
 
-// Calcola il saldo totale dei conti selezionati con le checkbox
+// Calculate total balance of selected accounts via checkboxes
 function calculateCombinedBalance() {
     var checkboxes = document.querySelectorAll("#accounts-combine-list input[type=checkbox]:checked");
     var total = 0;
@@ -101,7 +101,7 @@ function calculateCombinedBalance() {
     document.getElementById("combined-balance-result").textContent = formatCurrency(total);
 }
 
-// Calcola il saldo GLOBALE (tutti i conti marcati include_in_total)
+// Calculate GLOBAL balance (all accounts marked include_in_total)
 function calculateGlobalBalance() {
     var balance = 0;
     allAccounts.forEach(function (account) {
@@ -112,7 +112,7 @@ function calculateGlobalBalance() {
     return balance;
 }
 
-// ── RENDER CHECKBOX PER SALDO COMBINATO ───────────────────────────────────────
+// ── RENDER COMBINED BALANCE CHECKBOXES ────────────────────────────────────────
 
 function renderCombineCheckboxes() {
     var container = document.getElementById("accounts-combine-list");
@@ -127,7 +127,7 @@ function renderCombineCheckboxes() {
     });
 }
 
-// ── RENDER SELECT CONTI (usato da transactions.js e dashboard.js) ──────────────
+// ── RENDER ACCOUNTS SELECT (used by transactions.js and dashboard.js) ────────
 
 function renderAccountSelects() {
     var selects = document.querySelectorAll(".select-account");
@@ -140,13 +140,13 @@ function renderAccountSelects() {
             opt.textContent = account.name;
             sel.appendChild(opt);
         });
-        sel.value = currentValue; // ripristina la selezione precedente
+        sel.value = currentValue; // restore previous selection
     });
 
     renderCombineCheckboxes();
 }
 
-// ── MODAL CONTO (CREAZIONE / MODIFICA) ────────────────────────────────────────
+// ── ACCOUNT MODAL (CREATE / EDIT) ─────────────────────────────────────────────
 
 function openAddAccountModal() {
     document.getElementById("account-modal-title").innerText = "Nuovo Conto";
@@ -207,7 +207,7 @@ function cancelEditAccount() {
     document.getElementById("account-edit-modal").style.display = "none";
 }
 
-// ── ELIMINA CONTO (modal overlay) ─────────────────────────────────────────────
+// ── DELETE ACCOUNT (modal overlay) ────────────────────────────────────────────
 
 function openDeleteAccount(accountId) {
     var account = allAccounts.find(function (a) { return a.id === accountId; });
@@ -217,7 +217,7 @@ function openDeleteAccount(accountId) {
     document.getElementById("delete-account-name-label").textContent = account.name;
     clearError("account-delete-error");
 
-    // Popola il select di sostituzione con gli altri conti
+    // Populate replacement select with other accounts
     var sel = document.getElementById("delete-account-replace");
     sel.innerHTML = "<option value=''>-- Nessuna (elimina tutte le transazioni collegate) --</option>";
     allAccounts.forEach(function (a) {

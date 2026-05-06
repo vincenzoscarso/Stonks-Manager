@@ -1,0 +1,58 @@
+/* base.css — Reset, Typography, Body, and basic styles */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family-base);
+    font-size: 16px;
+    line-height: 1.5;
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+h1, h2, h3 {
+    color: var(--text-primary);
+}
+
+h2 {
+    font-size: 1.4em;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+h3 {
+    font-size: 1.1em;
+    margin: 16px 0 8px 0;
+}
+
+/* Styles for error messages and loading states */
+.error-msg {
+    color: var(--color-danger-dark);
+    background: var(--bg-danger-light);
+    border: 1px solid var(--color-danger-dark);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    display: none;
+    font-size: 0.9em;
+}
+
+.field-error {
+    color: var(--color-danger);
+    font-size: 0.8em;
+    margin-top: 4px;
+    display: none;
+}
+
+.loading {
+    display: none;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9em;
+    margin-top: 8px;
+}

@@ -1,0 +1,18 @@
+<!-- accounts.html -->
+<h2>Gestione Conti</h2>
+<div id="accounts-error" class="error-msg"></div>
+
+<button class="btn-primary" style="margin-bottom: 20px;" onclick="openAddAccountModal()">+ Aggiungi Conto</button>
+
+<!-- Existing accounts list -->
+<div id="accounts-list">
+    <p>Caricamento...</p>
+</div>
+
+<!-- Combined balance calculation -->
+<hr style="margin:24px 0" />
+<h3>Calcola saldo combinato</h3>
+<p style="color: var(--text-secondary); margin-bottom: 12px;">Seleziona i conti da sommare:</p>
+<div id="accounts-combine-list" style="margin-bottom:8px;"></div>
+<button class="btn-secondary" onclick="calculateCombinedBalance()">Calcola</button>
+<span style="margin-left:12px;">Saldo: <strong id="combined-balance-result">—</strong></span>

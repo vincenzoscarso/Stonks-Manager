@@ -1,31 +1,31 @@
-// dashboard.js — Saldo globale e grafico a torta (Chart.js)
+// dashboard.js — Global balance and pie chart (Chart.js)
 
-// ── STATO ─────────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
 
-var pieChart = null; // istanza Chart.js, null finché non è inizializzata
-var dashPeriod = "month"; // periodo selezionato: "day", "week", "month", "year"
-var dashChartType = "expense"; // "income" o "expense"
+var pieChart = null; // Chart.js instance, null until initialized
+var dashPeriod = "month"; // selected period: "day", "week", "month", "year"
+var dashChartType = "expense"; // "income" or "expense"
 
-// ── AGGIORNAMENTO DASHBOARD ────────────────────────────────────────────────────
+// ── DASHBOARD UPDATE ──────────────────────────────────────────────────────────
 
-// Chiamata ogni volta che allTransactions o allAccounts cambiano
+// Called every time allTransactions or allAccounts change
 function updateDashboard() {
     updateGlobalBalance();
     updatePieChart();
     updateCategoryList();
 }
 
-// ── SALDO GLOBALE ─────────────────────────────────────────────────────────────
+// ── GLOBAL BALANCE ────────────────────────────────────────────────────────────
 
 function updateGlobalBalance() {
-    var balance = calculateGlobalBalance(); // definita in accounts.js
+    var balance = calculateGlobalBalance(); // defined in accounts.js
     var el = document.getElementById("dashboard-balance");
     el.textContent = formatCurrency(balance);
-    // Colora in rosso se negativo
+    // Color red if negative
     el.style.color = (balance < 0) ? "#cc0000" : "";
 }
 
-// ── PERIODO ───────────────────────────────────────────────────────────────────
+// ── PERIOD ────────────────────────────────────────────────────────────────────
 
 function setDashPeriod(period) {
     dashPeriod = period;
@@ -33,7 +33,7 @@ function setDashPeriod(period) {
     updateCategoryList();
 }
 
-// Restituisce le transazioni filtrate per il periodo corrente
+// Returns filtered transactions for current period
 function getTransactionsForPeriod() {
     var now = new Date();
     var start;
@@ -41,8 +41,8 @@ function getTransactionsForPeriod() {
     if (dashPeriod === "day") {
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     } else if (dashPeriod === "week") {
-        // Inizio della settimana corrente (lunedì)
-        var day = now.getDay(); // 0=domenica, 1=lunedì...
+        // Start of current week (monday)
+        var day = now.getDay(); // 0=sunday, 1=monday...
         var diff = (day === 0) ? 6 : day - 1;
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
     } else if (dashPeriod === "month") {
@@ -57,15 +57,15 @@ function getTransactionsForPeriod() {
     });
 }
 
-// ── GRAFICO A TORTA ────────────────────────────────────────────────────────────
+// ── PIE CHART ─────────────────────────────────────────────────────────────────
 
 function updatePieChart() {
     var transactions = getTransactionsForPeriod();
 
-    // Filtra per tipo (income o expense)
+    // Filter by type (income or expense)
     var filtered = transactions.filter(function (t) { return t.type === dashChartType; });
 
-    // Raggruppa per categoria
+    // Group by category
     var groups = {};
     filtered.forEach(function (t) {
         var catName = getCategoryName(t.category_id);
@@ -80,13 +80,13 @@ function updatePieChart() {
     var canvas = document.getElementById("pie-chart");
 
     if (pieChart) {
-        // Aggiorna i dati esistenti
+        // Update existing data
         pieChart.data.labels = labels;
         pieChart.data.datasets[0].data = data;
         pieChart.data.datasets[0].backgroundColor = colors;
         pieChart.update();
     } else {
-        // Prima inizializzazione
+        // First initialization
         pieChart = new Chart(canvas, {
             type: "pie",
             data: {
@@ -114,7 +114,7 @@ function updatePieChart() {
     }
 }
 
-// ── LISTA CATEGORIE SOTTO IL GRAFICO ──────────────────────────────────────────
+// ── CATEGORIES LIST BELOW CHART ───────────────────────────────────────────────
 
 function updateCategoryList() {
     var transactions = getTransactionsForPeriod();
@@ -158,14 +158,14 @@ function updateCategoryList() {
     });
 }
 
-// Cambia il tipo di grafico (income/expense)
+// Change chart type (income/expense)
 function setDashChartType(type) {
     dashChartType = type;
     updatePieChart();
     updateCategoryList();
 }
 
-// ── GENERAZIONE COLORI ────────────────────────────────────────────────────────
+// ── COLOR GENERATION ──────────────────────────────────────────────────────────
 
 function generateColors(count) {
     var palette = [

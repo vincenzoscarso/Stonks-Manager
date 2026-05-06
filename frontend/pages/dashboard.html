@@ -1,0 +1,47 @@
+<!-- dashboard.html -->
+<!-- Balance -->
+<div class="dashboard-balance-container">
+    <span class="balance-label">Saldo Totale</span>
+    <div id="dashboard-balance">—</div>
+</div>
+
+<!-- TABS Month/Year... -->
+<div class="tabs-container">
+    <label class="tab-label">
+        <input type="radio" name="dash-period" value="day" onchange="setDashPeriod('day')">
+        <span>Oggi</span>
+    </label>
+    <label class="tab-label">
+        <input type="radio" name="dash-period" value="week" onchange="setDashPeriod('week')">
+        <span>Settimana</span>
+    </label>
+    <label class="tab-label">
+        <input type="radio" name="dash-period" value="month" onchange="setDashPeriod('month')" checked>
+        <span>Mese</span>
+    </label>
+    <label class="tab-label">
+        <input type="radio" name="dash-period" value="year" onchange="setDashPeriod('year')">
+        <span>Anno</span>
+    </label>
+</div>
+
+<!-- TABS Income/Expense -->
+<div class="tabs-container tabs-type">
+    <label class="tab-label">
+        <input type="radio" name="dash-chart-type" value="expense" onchange="setDashChartType('expense')" checked> 
+        <span>Spese</span>
+    </label>
+    <label class="tab-label">
+        <input type="radio" name="dash-chart-type" value="income" onchange="setDashChartType('income')">
+        <span>Entrate</span>
+    </label>
+</div>
+
+<div class="chart-container">
+    <canvas id="pie-chart"></canvas>
+</div>
+
+<!-- Categories list below chart -->
+<div id="dashboard-category-list" class="dashboard-category-list">
+    <p>Caricamento...</p>
+</div>

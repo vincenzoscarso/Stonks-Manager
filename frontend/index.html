@@ -11,79 +11,39 @@
     <!-- CSS -->
     <link rel="stylesheet" href="styles/main.css" />
 
-    <!-- Chart.js (grafico torta dashboard) -->
+    <!-- Chart.js (dashboard pie chart) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- Supabase JS SDK (per ottenere JWT) -->
+    <!-- Supabase JS SDK (to get JWT) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-    <!-- Variabili Supabase iniettate dal server dal file .env (vedi server.py) -->
+    <!-- Supabase variables injected by server from .env file (see server.py) -->
     <script src="/config.js"></script>
 </head>
 
 <body>
 
     <!-- ============================================================
-     INIZIALIZZAZIONE SUPABASE
+     SUPABASE INITIALIZATION AND COMPONENT LOADING
      ============================================================ -->
     <script>
         window.sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+        // Load HTML interfaces dynamically on app startup
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadComponents();
+            authInit(); // Start authentication after HTML is loaded
+        });
     </script>
 
     <!-- ============================================================
-     SEZIONE 1: AUTENTICAZIONE (login / registrazione)
+     SECTION 1: AUTHENTICATION (Injected by loadComponents)
      ============================================================ -->
-    <section id="section-auth">
-        <h1 style="text-align:center; margin-bottom: 24px; color:#007bff;">Stonks Manager</h1>
-        <div class="auth-card">
-            <h2 id="auth-title">Accedi</h2>
-            <div id="auth-error" class="error-msg"></div>
-
-            <!-- FORM LOGIN -->
-            <div id="form-login">
-                <div>
-                    <label for="login-email">Email:</label>
-                    <input type="email" id="login-email" placeholder="tua@email.com" />
-                </div>
-                <div>
-                    <label for="login-password">Password:</label>
-                    <input type="password" id="login-password" placeholder="Password" />
-                </div>
-                <button id="btn-login" class="btn-primary" onclick="handleLogin()">Accedi</button>
-                <div style="text-align: center; margin-top: 16px;">
-                    <a href="#" onclick="toggleAuthForm('register'); return false;" style="color: #007bff; text-decoration: none;">Non hai un account? Registrati</a>
-                </div>
-            </div>
-
-            <!-- FORM REGISTRAZIONE -->
-            <div id="form-register" style="display: none;">
-                <div>
-                    <label for="reg-displayname">Nome visualizzato:</label>
-                    <input type="text" id="reg-displayname" placeholder="Mario Rossi" />
-                </div>
-                <div>
-                    <label for="reg-email">Email:</label>
-                    <input type="email" id="reg-email" placeholder="tua@email.com" />
-                </div>
-                <div>
-                    <label for="reg-password">Password:</label>
-                    <input type="password" id="reg-password" placeholder="Almeno 6 caratteri" />
-                </div>
-                <button id="btn-register" class="btn-primary" style="width:100%"
-                    onclick="handleRegister()">Registrati</button>
-                <div style="text-align: center; margin-top: 16px;">
-                    <a href="#" onclick="toggleAuthForm('login'); return false;" style="color: #007bff; text-decoration: none;">Hai già un account? Accedi</a>
-                </div>
-                <div id="reg-success" style="display:none; color: green; margin-top: 10px;">
-                    Registrazione avvenuta! Controlla la tua email per confermare (se richiesto) o procedi al login.
-                </div>
-            </div>
-        </div>
-    </section>
+    <section id="section-auth"></section>
 
 
     <!-- ============================================================
-     SEZIONE 2: APP PRINCIPALE (SPA)
+     SECTION 2: MAIN APP (SPA)
      ============================================================ -->
     <section id="section-app" style="display:none;">
 
@@ -113,568 +73,30 @@
             </div>
         </nav>
 
-        <!-- CONTAINER PAGINE -->
-        <div class="page-container">
+        <!-- PAGE CONTAINER (Injected by loadComponents) -->
+        <div class="page-container" id="page-container">
+            <!-- dashboard.html, transactions.html, etc. will be injected here -->
+        </div>
 
-            <!-- ══════════════════════════════════════════════════════════
-             PAGINA 1: DASHBOARD
-             ══════════════════════════════════════════════════════════ -->
-            <div id="page-dashboard" class="page active">
-                <!-- Saldo -->
-                <div class="dashboard-balance-container">
-                    <span class="balance-label">Saldo Totale</span>
-                    <div id="dashboard-balance">—</div>
-                </div>
-
-                <!-- TABS Mese/Anno... -->
-                <div class="tabs-container">
-                    <label class="tab-label">
-                        <input type="radio" name="dash-period" value="day" onchange="setDashPeriod('day')">
-                        <span>Oggi</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="dash-period" value="week" onchange="setDashPeriod('week')">
-                        <span>Settimana</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="dash-period" value="month" onchange="setDashPeriod('month')" checked>
-                        <span>Mese</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="dash-period" value="year" onchange="setDashPeriod('year')">
-                        <span>Anno</span>
-                    </label>
-                </div>
-
-                <!-- TABS Entrate/Uscite -->
-                <div class="tabs-container tabs-type">
-                    <label class="tab-label">
-                        <input type="radio" name="dash-chart-type" value="expense"
-                            onchange="setDashChartType('expense')" checked> <span>Spese</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="dash-chart-type" value="income" onchange="setDashChartType('income')">
-                        <span>Entrate</span>
-                    </label>
-                </div>
-
-                <canvas id="pie-chart"></canvas>
-
-                <!-- Lista categorie sotto il grafico -->
-                <div id="dashboard-category-list" class="dashboard-category-list">
-                    <p>Caricamento...</p>
-                </div>
-            </div>
-
-            <!-- ══════════════════════════════════════════════════════════
-             PAGINA 2: STORICO MOVIMENTI
-             ══════════════════════════════════════════════════════════ -->
-            <div id="page-history" class="page" style="display:none;">
-                <h2>Storico Movimenti</h2>
-                <div id="transactions-error" class="error-msg"></div>
-
-                <!-- Filtri -->
-                <div class="filters-container">
-                    <input type="date" id="filter-start-date" placeholder="Dal" />
-                    <input type="date" id="filter-end-date" placeholder="Al" />
-                    <select id="filter-category" class="select-category">
-                        <option value="">-- Categorie --</option>
-                    </select>
-                    <select id="filter-account" class="select-account">
-                        <option value="">-- Conti --</option>
-                    </select>
-                    <select id="filter-type">
-                        <option value="">-- Tipo --</option>
-                        <option value="income">Entrata</option>
-                        <option value="expense">Uscita</option>
-                    </select>
-                    <div class="filter-buttons">
-                        <button onclick="applyTransactionFilters()">Applica</button>
-                        <button onclick="resetTransactionFilters()">Reset</button>
-                    </div>
-                </div>
-
-                <!-- Container Card -->
-                <div id="transactions-cards-container">
-                    <p>Caricamento...</p>
-                </div>
-            </div>
-
-            <!-- ══════════════════════════════════════════════════════════
-             PAGINA 3: GESTIONE CONTI
-             ══════════════════════════════════════════════════════════ -->
-            <div id="page-accounts" class="page" style="display:none;">
-                <h2>Gestione Conti</h2>
-                <div id="accounts-error" class="error-msg"></div>
-
-                <button class="btn-primary" style="margin-bottom: 20px;" onclick="openAddAccountModal()">+ Aggiungi
-                    Conto</button>
-
-                <!-- Lista conti esistenti -->
-                <div id="accounts-list">
-                    <p>Caricamento...</p>
-                </div>
-
-                <!-- Calcolo saldo combinato (opzionale, mantenuto se serve) -->
-                <hr style="margin:24px 0" />
-                <h3>Calcola saldo combinato</h3>
-                <p>Seleziona i conti da sommare:</p>
-                <div id="accounts-combine-list" style="margin-bottom:8px;"></div>
-                <button class="btn-secondary" onclick="calculateCombinedBalance()">Calcola</button>
-                <span style="margin-left:12px;">Saldo: <strong id="combined-balance-result">—</strong></span>
-            </div>
-
-            <!-- ══════════════════════════════════════════════════════════
-             PAGINA 4: GESTIONE CATEGORIE
-             ══════════════════════════════════════════════════════════ -->
-            <div id="page-categories" class="page" style="display:none;">
-                <h2>Gestione Categorie</h2>
-                <div id="categories-error" class="error-msg"></div>
-
-                <button class="btn-primary" style="margin-bottom: 20px;" onclick="openAddCategoryModal()">+ Aggiungi
-                    Categoria</button>
-
-                <!-- Lista categorie -->
-                <div id="categories-list">
-                    <p>Caricamento...</p>
-                </div>
-            </div>
-
-            <!-- ══════════════════════════════════════════════════════════
-             PAGINA 5: PROFILO UTENTE
-             ══════════════════════════════════════════════════════════ -->
-            <div id="page-profile" class="page" style="display:none;">
-                <h2>Profilo Utente</h2>
-                <div id="profile-error" class="error-msg"></div>
-                <div id="profile-success" style="display:none; color: green; margin-bottom: 10px;">Profilo aggiornato!
-                </div>
-
-                <div class="form-group">
-                    <label for="profile-display-name">Nome visualizzato:</label>
-                    <input type="text" id="profile-display-name" maxlength="255" />
-                </div>
-
-                <div class="form-group">
-                    <label for="profile-email">Email (sola lettura):</label>
-                    <input type="text" id="profile-email" disabled style="background:#e9ecef;" />
-                </div>
-
-                <button class="btn-primary" onclick="submitEditProfile()">Salva Modifiche</button>
-
-                <hr style="margin:30px 0;" />
-
-                <button class="btn-danger" style="width:100%" onclick="openDeleteProfileModal()">Elimina Account
-                    Definitivamente</button>
-            </div>
-
-        </div> <!-- fine page-container -->
-    </section><!-- fine section-app -->
-
+    </section>
 
     <!-- ============================================================
-     FAB GROUP — Pulsanti azione flottanti
-     Layout: ( 🧾  (  🤖 Inserimento AI  )  ➕ )
-     ============================================================ -->
-    <div class="fab-group" id="fab-group" style="display:none;">
-        <!-- Sinistra: Scansione Scontrino -->
-        <button class="fab-btn" id="fab-scan-receipt" onclick="openScanReceiptModal()" title="Scansiona Scontrino">
-            🧾 <span>Scontrino</span>
-        </button>
-
-        <!-- Centro (principale): Inserimento AI -->
-        <button class="fab-btn fab-btn-main" id="fab-quick-insert" onclick="openQuickInsertModal()"
-            title="Inserimento AI">
-            🤖 Inserimento AI
-        </button>
-
-        <!-- Destra: Nuova Transazione manuale -->
-        <button class="fab-btn" id="fab-new-transaction" onclick="openTransactionModalForAdd()"
-            title="Nuova Transazione">
-            ➕ <span>Nuova</span>
-        </button>
-    </div>
-
-
-    <!-- ============================================================
-     MODALS (TRANSAZIONI, CONTI, CATEGORIE, PROFILO)
+     MODALS AND FAB (Injected by loadComponents into body)
      ============================================================ -->
 
-    <!-- MODAL UNIFICATO TRANSAZIONE -->
-    <div id="transaction-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Nuova Transazione</h2>
-                <button class="modal-close-btn" onclick="closeTransactionModal()">✕</button>
-            </div>
-            <div id="modal-error" class="error-msg"></div>
-
-            <input type="hidden" id="modal-tx-id" />
-
-            <div class="form-group">
-                <label>Tipo:</label>
-                <div class="tabs-container tabs-type">
-                    <label class="tab-label">
-                        <input type="radio" name="modal-tx-type" value="expense" checked
-                            onchange="updateModalCategories()"> <span>Uscita</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="modal-tx-type" value="income" onchange="updateModalCategories()">
-                        <span>Entrata</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="modal-tx-amount">Importo (€):</label>
-                <input type="number" id="modal-tx-amount" step="0.01" placeholder="0.00" />
-                <div id="err-amount" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="modal-tx-date">Data:</label>
-                <input type="date" id="modal-tx-date" />
-                <div id="err-date" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="modal-tx-category">Categoria:</label>
-                <select id="modal-tx-category">
-                    <option value="">-- Seleziona --</option>
-                </select>
-                <div id="err-category" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="modal-tx-account">Conto:</label>
-                <select id="modal-tx-account">
-                    <option value="">-- Seleziona --</option>
-                </select>
-                <div id="err-account" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="modal-tx-description">Descrizione:</label>
-                <textarea id="modal-tx-description" maxlength="256" placeholder="Opzionale..."></textarea>
-                <div class="char-counter"><span id="char-count">0</span>/256</div>
-                <div id="err-description" class="field-error"></div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-primary" onclick="saveTransactionFromModal()">Salva</button>
-                <button class="btn-secondary" onclick="closeTransactionModal()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: AGGIUNGI/MODIFICA CONTO -->
-    <div id="account-edit-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="account-modal-title">Modifica Conto</h2>
-                <button class="modal-close-btn" onclick="cancelEditAccount()">✕</button>
-            </div>
-            <div id="account-edit-error" class="error-msg"></div>
-
-            <input type="hidden" id="edit-account-id" />
-
-            <div class="form-group">
-                <label for="edit-account-name">Nome:</label>
-                <input type="text" id="edit-account-name" maxlength="64" placeholder="Nome del conto" />
-                <div id="err-edit-account-name" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="edit-account-include" style="display:flex; align-items:center; gap:8px; min-width:unset;">
-                    <input type="checkbox" id="edit-account-include" style="width:auto; margin:0;" />
-                    Includi nel totale globale
-                </label>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-primary" onclick="submitEditAccount()">Salva</button>
-                <button class="btn-secondary" onclick="cancelEditAccount()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ELIMINA CONTO -->
-    <div id="account-delete-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Elimina Conto</h2>
-                <button class="modal-close-btn" onclick="cancelDeleteAccount()">✕</button>
-            </div>
-            <div id="account-delete-error" class="error-msg"></div>
-
-            <p>Stai eliminando il conto: <strong id="delete-account-name-label"></strong></p>
-
-            <input type="hidden" id="delete-account-id" />
-
-            <div class="form-group" style="margin-top:16px;">
-                <label for="delete-account-replace">Sposta transazioni su:</label>
-                <select id="delete-account-replace"></select>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-danger" onclick="submitDeleteAccount()">Conferma eliminazione</button>
-                <button class="btn-secondary" onclick="cancelDeleteAccount()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: AGGIUNGI/MODIFICA CATEGORIA -->
-    <div id="category-edit-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="category-modal-title">Modifica Categoria</h2>
-                <button class="modal-close-btn" onclick="cancelEditCategory()">✕</button>
-            </div>
-            <div id="category-edit-error" class="error-msg"></div>
-
-            <input type="hidden" id="edit-cat-id" />
-
-            <div class="form-group">
-                <label for="edit-cat-name">Nome:</label>
-                <input type="text" id="edit-cat-name" maxlength="64" placeholder="Nome categoria" />
-                <div id="err-edit-cat-name" class="field-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Tipo:</label>
-                <div class="tabs-container tabs-type">
-                    <label class="tab-label">
-                        <input type="radio" name="edit-cat-type" value="expense" checked> <span>Uscita</span>
-                    </label>
-                    <label class="tab-label">
-                        <input type="radio" name="edit-cat-type" value="income"> <span>Entrata</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="edit-cat-description">Descrizione (opz.):</label>
-                <textarea id="edit-cat-description" maxlength="256" placeholder="Breve descrizione..."></textarea>
-                <div class="char-counter"><span id="edit-cat-char-count">0</span>/256</div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-primary" onclick="submitEditCategory()">Salva</button>
-                <button class="btn-secondary" onclick="cancelEditCategory()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ELIMINA CATEGORIA -->
-    <div id="category-delete-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Elimina Categoria</h2>
-                <button class="modal-close-btn" onclick="cancelDeleteCategory()">✕</button>
-            </div>
-            <div id="category-delete-error" class="error-msg"></div>
-
-            <p>Stai eliminando la categoria: <strong id="delete-cat-name-label"></strong></p>
-
-            <input type="hidden" id="delete-cat-id" />
-
-            <div class="form-group" style="margin-top:16px;">
-                <label for="delete-cat-replace">Sposta transazioni su:</label>
-                <select id="delete-cat-replace"></select>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-danger" onclick="submitDeleteCategory()">Conferma eliminazione</button>
-                <button class="btn-secondary" onclick="cancelDeleteCategory()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ELIMINA PROFILO -->
-    <div id="profile-delete-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Elimina Account</h2>
-                <button class="modal-close-btn" onclick="cancelDeleteProfile()">✕</button>
-            </div>
-            <div id="profile-delete-error" class="error-msg"></div>
-            <p>Sei sicuro di voler eliminare **definitivamente** il tuo account e tutti i dati associati? Questa azione
-                è irreversibile.</p>
-            <div class="modal-actions">
-                <button class="btn-danger" onclick="submitDeleteProfile()">Conferma eliminazione</button>
-                <button class="btn-secondary" onclick="cancelDeleteProfile()">Annulla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL AI: INSERIMENTO RAPIDO -->
-    <div id="ai-quick-insert-modal" class="ai-modal-overlay">
-        <div class="ai-modal-content">
-            <div class="modal-header">
-                <h2>🤖 Inserimento AI</h2>
-                <button class="modal-close-btn" onclick="closeQuickInsertModal()">✕</button>
-            </div>
-            <div id="quick-insert-error" class="error-msg"></div>
-            <p style="font-size: 0.85em; color: #65676b; margin-bottom: 10px;">
-                Es: "Oggi ho speso 15 euro per due pizze"
-            </p>
-            <div class="form-group">
-                <textarea id="quick-insert-text" maxlength="256" placeholder="Scrivi qui la tua spesa..."
-                    style="height:80px;"></textarea>
-                <div class="char-counter"><span id="ai-char-count">0</span>/256</div>
-            </div>
-            <button id="btn-quick-insert" class="btn-primary" onclick="runQuickInsert()">
-                Analizza con AI
-            </button>
-            <span id="quick-insert-loading" class="loading">Analisi in corso...</span>
-        </div>
-    </div>
-
-    <!-- MODAL AI: SCANSIONE SCONTRINO -->
-    <div id="ai-scan-receipt-modal" class="ai-modal-overlay">
-        <div class="ai-modal-content">
-            <div class="modal-header">
-                <h2>🧾 Scansiona Scontrino</h2>
-                <button class="modal-close-btn" onclick="closeScanReceiptModal()">✕</button>
-            </div>
-            <div id="scan-receipt-error" class="error-msg"></div>
-            <p style="font-size: 0.85em; color: #65676b; margin-bottom: 10px;">
-                Carica una foto dello scontrino per estrarre i dati.
-            </p>
-            <div class="form-group">
-                <input type="file" id="receipt-file" accept="image/*" />
-            </div>
-            <button id="btn-scan-receipt" class="btn-primary" onclick="runScanReceipt()">
-                Scansiona Scontrino
-            </button>
-            <span id="scan-receipt-loading" class="loading">Scansione in corso...</span>
-        </div>
-    </div>
-
 
     <!-- ============================================================
-     SCRIPT JS
+     JS SCRIPTS
      ============================================================ -->
     <script src="scripts/api.js"></script>
-    <script src="scripts/auth.js"></script>
+    <script src="scripts/app.js"></script>
     <script src="scripts/ui_logic.js"></script>
+    <script src="scripts/auth.js"></script>
     <script src="scripts/accounts.js"></script>
     <script src="scripts/categories.js"></script>
     <script src="scripts/transactions.js"></script>
     <script src="scripts/dashboard.js"></script>
     <script src="scripts/ai.js"></script>
 
-    <script>
-        // ── UTILITY GLOBALI ──────────────────────────────────────────────────────────
-        function formatCurrency(amount) {
-            return amount.toFixed(2).replace(".", ",") + " €";
-        }
-        function formatDate(isoString) {
-            var d = new Date(isoString);
-            var day = String(d.getDate()).padStart(2, "0");
-            var month = String(d.getMonth() + 1).padStart(2, "0");
-            var year = d.getFullYear();
-            return day + "/" + month + "/" + year;
-        }
-        function getTodayString() {
-            var d = new Date();
-            var month = String(d.getMonth() + 1).padStart(2, "0");
-            var day = String(d.getDate()).padStart(2, "0");
-            return d.getFullYear() + "-" + month + "-" + day;
-        }
-        function escapeHtml(str) {
-            if (!str) return "";
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-        function showError(elementId, message) {
-            var el = document.getElementById(elementId);
-            if (!el) return;
-            el.textContent = message;
-            el.style.display = "block";
-        }
-        function clearError(elementId) {
-            var el = document.getElementById(elementId);
-            if (!el) return;
-            el.textContent = "";
-            el.style.display = "none";
-        }
-
-        function toggleAuthForm(mode) {
-            clearError("auth-error");
-            if (mode === 'register') {
-                document.getElementById('form-login').style.display = 'none';
-                document.getElementById('form-register').style.display = 'block';
-                document.getElementById('auth-title').innerText = 'Registrati';
-            } else {
-                document.getElementById('form-register').style.display = 'none';
-                document.getElementById('form-login').style.display = 'block';
-                document.getElementById('auth-title').innerText = 'Accedi';
-            }
-        }
-
-        // ── HANDLER LOGIN / REGISTRAZIONE ───────────────────────────────────────────
-        async function handleLogin() {
-            var email = document.getElementById("login-email").value.trim();
-            var password = document.getElementById("login-password").value;
-            clearError("auth-error");
-
-            if (!email || !password) {
-                showError("auth-error", "Inserisci email e password.");
-                return;
-            }
-
-            try {
-                await authLogin(email, password);
-            } catch (err) {
-                showError("auth-error", "Login fallito: " + err.message);
-            }
-        }
-
-        async function handleRegister() {
-            var displayName = document.getElementById("reg-displayname").value.trim();
-            var email = document.getElementById("reg-email").value.trim();
-            var password = document.getElementById("reg-password").value;
-            clearError("auth-error");
-
-            if (!displayName) {
-                showError("auth-error", "Inserisci il nome visualizzato.");
-                return;
-            }
-            if (!email || !password) {
-                showError("auth-error", "Inserisci email e password.");
-                return;
-            }
-
-            try {
-                await authRegister(email, password, displayName);
-                document.getElementById("reg-success").style.display = "block";
-            } catch (err) {
-                showError("auth-error", "Registrazione fallita: " + err.message);
-            }
-        }
-
-        // ── INIZIALIZZAZIONE APP ─────────────────────────────────────────────────────
-        async function appInit() {
-            document.getElementById("fab-group").style.display = "flex";
-            showPage('dashboard');
-
-            try {
-                window.currentUserProfile = await apiGetUser();
-                document.getElementById("profile-display-name").value = currentUserProfile.display_name;
-                document.getElementById("profile-email").value = currentUserProfile.email;
-            } catch (e) {
-                console.error("Errore caricamento profilo", e);
-            }
-
-            await Promise.all([loadAccounts(), loadCategories()]);
-            await loadTransactions();
-        }
-
-        // ── AVVIO ────────────────────────────────────────────────────────────────────
-        document.addEventListener("DOMContentLoaded", function () {
-            authInit();
-        });
-    </script>
-
 </body>
-
 </html>

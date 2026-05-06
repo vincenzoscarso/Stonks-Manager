@@ -1,0 +1,55 @@
+/* pages.css — Specific styles for single views (Dashboard, Auth, etc.) */
+
+/* ── AUTHENTICATION (Login / Register) ── */
+.auth-card {
+    background: var(--bg-surface);
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+.auth-card h2 { text-align: center; }
+.auth-card h3 { text-align: center; color: var(--color-primary); }
+
+/* ── DASHBOARD ── */
+#dashboard-balance {
+    font-size: 3em;
+    font-weight: 800;
+    text-align: center;
+    margin: 16px 0 24px 0;
+    color: var(--text-primary);
+}
+.balance-positive { color: var(--color-success) !important; }
+.balance-negative { color: var(--color-danger) !important; }
+
+.chart-container {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 24px auto;
+}
+#pie-chart { width: 100%; height: auto; }
+
+/* Inline Categories List (Below chart) */
+.dashboard-category-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color-light);
+    font-size: 1em;
+}
+.dashboard-category-item:last-child {
+    border-bottom: none;
+}
+.dashboard-category-name {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.dashboard-category-amount {
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+@media (max-width: 600px) {
+    #dashboard-balance { font-size: 2.4em; }
+}

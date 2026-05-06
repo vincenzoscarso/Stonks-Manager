@@ -1,10 +1,10 @@
-// categories.js — Gestione categorie (CRUD)
+// categories.js — Categories management (CRUD)
 
-// ── STATO ─────────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
 
 var allCategories = []; // [{id, name, type, description, user_profile_id}]
 
-// ── CARICAMENTO ───────────────────────────────────────────────────────────────
+// ── LOADING ───────────────────────────────────────────────────────────────────
 
 async function loadCategories() {
     try {
@@ -16,7 +16,7 @@ async function loadCategories() {
     }
 }
 
-// ── RENDER LISTA CATEGORIE ────────────────────────────────────────────────────
+// ── RENDER CATEGORIES LIST ────────────────────────────────────────────────────
 
 function renderCategoriesList() {
     var container = document.getElementById("categories-list");
@@ -28,7 +28,7 @@ function renderCategoriesList() {
     }
 
     allCategories.forEach(function (cat) {
-        var isGlobal = !cat.user_profile_id; // categorie predefinite hanno user_profile_id null
+        var isGlobal = !cat.user_profile_id; // predefined categories have null user_profile_id
 
         var div = document.createElement("div");
         div.className = "transaction-card";
@@ -45,7 +45,7 @@ function renderCategoriesList() {
         div.appendChild(topDiv);
         div.appendChild(descDiv);
 
-        // Colonna azioni (solo per categorie dell'utente)
+        // Actions column (only for user categories)
         if (!isGlobal) {
             var actionsDiv = document.createElement("div");
             actionsDiv.className = "card-actions";
@@ -69,7 +69,7 @@ function renderCategoriesList() {
     });
 }
 
-// ── RENDER SELECT CATEGORIE (usato da transactions.js e dashboard.js) ──────────
+// ── RENDER CATEGORIES SELECT (used by transactions.js and dashboard.js) ──────
 
 function renderCategorySelects() {
     var selects = document.querySelectorAll(".select-category");
@@ -85,12 +85,12 @@ function renderCategorySelects() {
         sel.value = currentValue;
     });
 
-    // Select filtrate per tipo (usate nel form di inserimento transazione)
+    // Selects filtered by type (used in transaction insert form)
     renderCategorySelectsByType();
 }
 
-// Select categoria filtrata per tipo income/expense
-// Usata nel form transazione (cambia in base al radio entrata/uscita)
+// Filtered category select by income/expense type
+// Used in transaction form (changes based on income/expense radio)
 function renderCategorySelectsByType() {
     var typeRadios = document.querySelectorAll("input[name='modal-tx-type']");
     var selectedType = "expense"; // default
@@ -111,7 +111,7 @@ function renderCategorySelectsByType() {
     });
 }
 
-// ── MODAL CATEGORIA (CREAZIONE / MODIFICA) ────────────────────────────────────────
+// ── CATEGORY MODAL (CREATE / EDIT) ────────────────────────────────────────────
 
 function openAddCategoryModal() {
     document.getElementById("category-modal-title").innerText = "Nuova Categoria";
@@ -180,7 +180,7 @@ function cancelEditCategory() {
     document.getElementById("category-edit-modal").style.display = "none";
 }
 
-// ── ELIMINA CATEGORIA (modal overlay) ────────────────────────────────────────
+// ── DELETE CATEGORY (modal overlay) ───────────────────────────────────────────
 
 function openDeleteCategory(categoryId) {
     var cat = allCategories.find(function (c) { return c.id === categoryId; });
@@ -223,7 +223,7 @@ function cancelDeleteCategory() {
     document.getElementById("category-delete-modal").style.display = "none";
 }
 
-// ── CHAR COUNTER DESCRIZIONE MODIFICA CATEGORIA ───────────────────────────────
+// ── EDIT CATEGORY DESCRIPTION CHAR COUNTER ────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", function () {
     var editDesc = document.getElementById("edit-cat-description");

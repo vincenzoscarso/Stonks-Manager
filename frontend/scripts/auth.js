@@ -1,16 +1,16 @@
-// auth.js — Gestione autenticazione tramite Supabase Auth JS SDK
-// Il frontend ottiene il JWT direttamente da Supabase, poi lo passa al backend
+// auth.js — Authentication management via Supabase Auth JS SDK
+// Frontend gets JWT directly from Supabase, then passes it to backend
 
-// NOTA: la variabile `supabase` viene creata da supabaseClient definito inline in index.html
-// (o da un piccolo blocco script che chiama createClient prima di caricare questo file)
+// NOTE: `supabase` variable is created by supabaseClient defined inline in index.html
+// (or by a small script block calling createClient before loading this file)
 
-// ── STATO GLOBALE ─────────────────────────────────────────────────────────────
+// ── GLOBAL STATE ─────────────────────────────────────────────────────────────
 
-var currentUser = null; // oggetto Supabase user, null se non loggato
+var currentUser = null; // Supabase user object, null if not logged in
 
-// ── INIZIALIZZAZIONE ──────────────────────────────────────────────────────────
+// ── INITIALIZATION ───────────────────────────────────────────────────────────
 
-// Da chiamare una sola volta all'avvio dell'app (in index.html onload o DOMContentLoaded)
+// Call once on app startup (in index.html onload or DOMContentLoaded)
 async function authInit() {
     var sessionResult = await window.sbClient.auth.getSession();
     var session = sessionResult.data.session;
@@ -23,7 +23,7 @@ async function authInit() {
         showLoginSection();
     }
 
-    // Ascolta i cambiamenti di sessione (login/logout automatici)
+    // Listen for session changes (automatic login/logout)
     window.sbClient.auth.onAuthStateChange(function (event, session) {
         if (session) {
             currentUser = session.user;
@@ -32,13 +32,58 @@ async function authInit() {
         } else {
             currentUser = null;
             localStorage.removeItem("sb_access_token");
-            clearAppData(); // Pulisce i dati del vecchio utente
+            clearAppData(); // Cleans old user data
             showLoginSection();
         }
     });
 }
 
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
+// ── UI FORM MANAGEMENT ───────────────────────────────────────────────────────
+
+function toggleAuthForm(mode) {
+    clearError("auth-error");
+    if (mode === 'register') {
+        document.getElementById('form-login').style.display = 'none';
+        document.getElementById('form-register').style.display = 'block';
+        document.getElementById('auth-title').innerText = 'Registrati';
+    } else {
+        document.getElementById('form-register').style.display = 'none';
+        document.getElementById('form-login').style.display = 'block';
+        document.getElementById('auth-title').innerText = 'Accedi';
+    }
+}
+
+async function handleLogin() {
+    var email = document.getElementById("login-email").value.trim();
+    var pass = document.getElementById("login-password").value;
+    clearError("auth-error");
+    if (!email || !pass) { showError("auth-error", "Inserisci email e password."); return; }
+    try {
+        await authLogin(email, pass);
+    } catch (e) {
+        showError("auth-error", "Login fallito: " + e.message);
+    }
+}
+
+async function handleRegister() {
+    var dname = document.getElementById("reg-displayname").value.trim();
+    var email = document.getElementById("reg-email").value.trim();
+    var pass = document.getElementById("reg-password").value;
+    clearError("auth-error");
+    if (!dname || !email || !pass) { showError("auth-error", "Compila tutti i campi."); return; }
+    if (pass.length < 6) { showError("auth-error", "La password deve avere almeno 6 caratteri."); return; }
+    try {
+        await authRegister(email, pass, dname);
+        document.getElementById("reg-success").style.display = "block";
+        document.getElementById("reg-displayname").value = "";
+        document.getElementById("reg-email").value = "";
+        document.getElementById("reg-password").value = "";
+    } catch (e) {
+        showError("auth-error", "Errore registrazione: " + e.message);
+    }
+}
+
+// ── LOGIN API ────────────────────────────────────────────────────────────────
 
 async function authLogin(email, password) {
     var result = await window.sbClient.auth.signInWithPassword({
@@ -53,9 +98,9 @@ async function authLogin(email, password) {
     return result.data;
 }
 
-// ── REGISTRAZIONE ─────────────────────────────────────────────────────────────
+// ── REGISTRATION ─────────────────────────────────────────────────────────────
 
-// displayName viene passato come metadata → il trigger SQL lo usa per creare user_profile
+// displayName is passed as metadata → SQL trigger uses it to create user_profile
 async function authRegister(email, password, displayName) {
     var result = await window.sbClient.auth.signUp({
         email: email,
@@ -84,45 +129,45 @@ async function authLogout() {
     showLoginSection();
 }
 
-// ── RESET COMPLETO DATI APP ───────────────────────────────────────────────────
+// ── FULL APP DATA RESET ──────────────────────────────────────────────────────
 
 /**
- * Pulisce TUTTI i dati e campi visibili dal DOM.
- * Chiamata al logout per evitare che i dati del vecchio utente
- * restino visibili al prossimo utente che accede.
+ * Clears ALL data and visible fields from DOM.
+ * Called on logout to prevent old user data
+ * from remaining visible to the next logging user.
  */
 function clearAppData() {
 
-    // ── DATI GLOBALI IN MEMORIA ──────────────────────────────────────────────
+    // ── GLOBAL IN-MEMORY DATA ────────────────────────────────────────────────────
     if (typeof allAccounts !== "undefined")     allAccounts    = [];
     if (typeof allCategories !== "undefined")   allCategories  = [];
     if (typeof allTransactions !== "undefined") allTransactions = [];
-    // Alias window usato da transactions.js
+    // Window alias used by transactions.js
     window.allAccounts    = [];
     window.allCategories  = [];
     window.allTransactions = [];
 
-    // ── UTENTE ───────────────────────────────────────────────────────────────
+    // ── USER ─────────────────────────────────────────────────────────────────────
     var userNameEl = document.getElementById("user-display-name");
     if (userNameEl) userNameEl.textContent = "—";
 
-    // ── DASHBOARD ────────────────────────────────────────────────────────────
+    // ── DASHBOARD ────────────────────────────────────────────────────────────────
     var balanceEl = document.getElementById("dashboard-balance");
     if (balanceEl) balanceEl.textContent = "—";
 
     var catListEl = document.getElementById("dashboard-category-list");
     if (catListEl) catListEl.innerHTML = "<p>Caricamento...</p>";
 
-    // Distruggi grafico Chart.js se esiste
+    // Destroy Chart.js graph if it exists
     if (window.myPieChart) { window.myPieChart.destroy(); window.myPieChart = null; }
-    // Variabile usata da dashboard.js
+    // Variable used by dashboard.js
     if (typeof pieChart !== "undefined" && pieChart) { pieChart.destroy(); pieChart = null; }
 
-    // ── TRANSAZIONI ──────────────────────────────────────────────────────────
+    // ── TRANSACTIONS ─────────────────────────────────────────────────────────────
     var txContainer = document.getElementById("transactions-cards-container");
     if (txContainer) txContainer.innerHTML = "<p>Caricamento...</p>";
 
-    // Reset filtri transazioni
+    // Reset transaction filters
     var filterIds = ["filter-start-date", "filter-end-date", "filter-category", "filter-account", "filter-type"];
     filterIds.forEach(function (id) {
         var el = document.getElementById(id);
@@ -130,7 +175,7 @@ function clearAppData() {
     });
     if (typeof currentFilters !== "undefined") currentFilters = {};
 
-    // ── CONTI ────────────────────────────────────────────────────────────────
+    // ── ACCOUNTS ─────────────────────────────────────────────────────────────────
     var accountsList = document.getElementById("accounts-list");
     if (accountsList) accountsList.innerHTML = "";
 
@@ -140,13 +185,13 @@ function clearAppData() {
     var combinedResult = document.getElementById("combined-balance-result");
     if (combinedResult) combinedResult.textContent = "—";
 
-    // Reset form nuovo conto
+    // Reset new account form
     var newAccName = document.getElementById("new-account-name");
     if (newAccName) newAccName.value = "";
     var newAccInclude = document.getElementById("new-account-include");
     if (newAccInclude) newAccInclude.checked = true;
 
-    // Chiudi e svuota modal modifica conto
+    // Close and clear edit account modal
     var editAccModal = document.getElementById("account-edit-modal");
     if (editAccModal) editAccModal.style.display = "none";
     ["edit-account-id", "edit-account-name"].forEach(function (id) {
@@ -155,7 +200,7 @@ function clearAppData() {
     var editAccInclude = document.getElementById("edit-account-include");
     if (editAccInclude) editAccInclude.checked = true;
 
-    // Chiudi e svuota modal elimina conto
+    // Close and clear delete account modal
     var delAccModal = document.getElementById("account-delete-modal");
     if (delAccModal) delAccModal.style.display = "none";
     var delAccId = document.getElementById("delete-account-id");
@@ -165,18 +210,18 @@ function clearAppData() {
     var delAccReplace = document.getElementById("delete-account-replace");
     if (delAccReplace) delAccReplace.innerHTML = "";
 
-    // ── CATEGORIE ────────────────────────────────────────────────────────────
+    // ── CATEGORIES ───────────────────────────────────────────────────────────────
     var categoriesList = document.getElementById("categories-list");
     if (categoriesList) categoriesList.innerHTML = "";
 
-    // Reset form nuova categoria
+    // Reset new category form
     ["new-cat-name", "new-cat-description"].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = "";
     });
     var newCatType = document.getElementById("new-cat-type");
     if (newCatType) newCatType.value = "";
 
-    // Chiudi e svuota modal modifica categoria
+    // Close and clear edit category modal
     var editCatModal = document.getElementById("category-edit-modal");
     if (editCatModal) editCatModal.style.display = "none";
     ["edit-cat-id", "edit-cat-name", "edit-cat-description"].forEach(function (id) {
@@ -187,7 +232,7 @@ function clearAppData() {
     var editCatCharCount = document.getElementById("edit-cat-char-count");
     if (editCatCharCount) editCatCharCount.textContent = "0";
 
-    // Chiudi e svuota modal elimina categoria
+    // Close and clear delete category modal
     var delCatModal = document.getElementById("category-delete-modal");
     if (delCatModal) delCatModal.style.display = "none";
     var delCatId = document.getElementById("delete-cat-id");
@@ -197,11 +242,11 @@ function clearAppData() {
     var delCatReplace = document.getElementById("delete-cat-replace");
     if (delCatReplace) delCatReplace.innerHTML = "";
 
-    // ── MODAL TRANSAZIONE ────────────────────────────────────────────────────
+    // ── TRANSACTION MODAL ────────────────────────────────────────────────────────
     var txModal = document.getElementById("transaction-modal");
     if (txModal) txModal.style.display = "none";
 
-    // ── MODAL AI ─────────────────────────────────────────────────────────────
+    // ── AI MODAL ─────────────────────────────────────────────────────────────────
     var aiQuickModal = document.getElementById("ai-quick-insert-modal");
     if (aiQuickModal) aiQuickModal.style.display = "none";
     var quickText = document.getElementById("quick-insert-text");
@@ -218,7 +263,7 @@ function clearAppData() {
     var scanErr = document.getElementById("scan-receipt-error");
     if (scanErr) { scanErr.textContent = ""; scanErr.style.display = "none"; }
 
-    // ── SELECT CONTI E CATEGORIE (svuota i dropdown) ─────────────────────────
+    // ── ACCOUNTS AND CATEGORIES SELECT (clear dropdowns) ─────────────────────────
     document.querySelectorAll(".select-account").forEach(function (sel) {
         sel.innerHTML = "<option value=''>-- Tutti i conti --</option>";
     });
@@ -226,12 +271,12 @@ function clearAppData() {
         sel.innerHTML = "<option value=''>-- Tutte le categorie --</option>";
     });
 
-    // ── MESSAGGI DI ERRORE ───────────────────────────────────────────────────
+    // ── ERROR MESSAGES ───────────────────────────────────────────────────────────
     ["accounts-error", "categories-error", "transactions-error", "modal-error"].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) { el.textContent = ""; el.style.display = "none"; }
     });
-    // ── PROFILO UTENTE ───────────────────────────────────────────────────────
+    // ── USER PROFILE ─────────────────────────────────────────────────────────────
     var profName = document.getElementById("profile-display-name");
     if (profName) profName.value = "";
     var profEmail = document.getElementById("profile-email");
@@ -244,19 +289,19 @@ function clearAppData() {
     var delProfModal = document.getElementById("profile-delete-modal");
     if (delProfModal) delProfModal.style.display = "none";
 
-    // ── SIDEBAR E MENU ───────────────────────────────────────────────────────
+    // ── SIDEBAR AND MENU ─────────────────────────────────────────────────────────
     var sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.classList.remove("open");
     var overlay = document.getElementById("sidebar-overlay");
     if (overlay) overlay.classList.remove("visible");
 }
 
-// ── VISIBILITÀ SEZIONI ────────────────────────────────────────────────────────
+// ── SECTIONS VISIBILITY ──────────────────────────────────────────────────────
 
 function showLoginSection() {
     document.getElementById("section-auth").style.display = "block";
     document.getElementById("section-app").style.display = "none";
-    // Nascondi il FAB group sulla pagina di login
+    // Hide FAB group on login page
     var fab = document.getElementById("fab-group");
     if (fab) fab.style.display = "none";
 }
@@ -264,15 +309,15 @@ function showLoginSection() {
 function showApp() {
     document.getElementById("section-auth").style.display = "none";
     document.getElementById("section-app").style.display = "block";
-    // Carica tutti i dati iniziali quando l'utente è loggato
+    // Load all initial data when user is logged in
     appInit();
 }
 
-// ── GESTIONE PROFILO UTENTE ───────────────────────────────────────────────────
+// ── USER PROFILE MANAGEMENT ──────────────────────────────────────────────────
 
 async function submitEditProfile() {
     var displayName = document.getElementById("profile-display-name").value.trim();
-    var email = document.getElementById("profile-email").value.trim(); // sola lettura
+    var email = document.getElementById("profile-email").value.trim(); // read-only
 
     clearError("profile-error");
     document.getElementById("profile-success").style.display = "none";
@@ -286,7 +331,7 @@ async function submitEditProfile() {
         await apiUpdateUser(displayName, email);
         document.getElementById("profile-success").style.display = "block";
         
-        // Aggiorna anche l'header/sidebar se ci fosse il nome lì, oppure il currentUserProfile
+        // Update header/sidebar if name is there, or currentUserProfile
         if (window.currentUserProfile) {
             window.currentUserProfile.display_name = displayName;
         }
@@ -310,8 +355,8 @@ function cancelDeleteProfile() {
 async function submitDeleteProfile() {
     try {
         await apiDeleteUser();
-        // L'eliminazione nel backend cancellerà i dati e il record utente.
-        // Dobbiamo anche sloggare l'utente da Supabase
+        // Deletion in backend will delete data and user record.
+        // We must also logout user from Supabase
         await authLogout();
     } catch (err) {
         document.getElementById("profile-delete-error").textContent = err.message;
