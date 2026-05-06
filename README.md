@@ -1,10 +1,6 @@
 # Stonks Manager Backend
 
-
-
 This is the Python backend for Stonks Manager, built with FastAPI.
-
-
 
 ## Setup
 
