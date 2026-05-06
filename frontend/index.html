@@ -53,8 +53,8 @@
         <!-- HEADER / HAMBURGER -->
         <header class="app-header">
             <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
-            <h1 class="app-title">Stonks Manager</h1>
-            <div style="width:40px;"></div> <!-- Placeholder to center title -->
+            <h1 class="app-title" onclick="showPage('dashboard')" style="cursor:pointer;">Stonks Manager</h1>
+            <img src="assets/favicon.png" alt="Logo" class="header-logo" onclick="showPage('info')" style="width:32px; height:32px; cursor:pointer;">
         </header>
 
         <!-- SIDEBAR -->
@@ -67,9 +67,10 @@
             <ul class="sidebar-menu">
                 <li><a href="#" onclick="showPage('dashboard')">🏠 Dashboard</a></li>
                 <li><a href="#" onclick="showPage('history')">💸 Transazioni</a></li>
-                <li><a href="#" onclick="showPage('accounts')">🏦 Conti</a></li>
                 <li><a href="#" onclick="showPage('categories')">🏷️ Categorie</a></li>
+                <li><a href="#" onclick="showPage('accounts')">🏦 Conti</a></li>
                 <li><a href="#" onclick="showPage('profile')">👤 Profilo</a></li>
+                <li><a href="#" onclick="showPage('info')">ℹ️ Informazioni</a></li>
             </ul>
             <div class="sidebar-footer">
                 <button class="btn-secondary" onclick="authLogout()" style="width:100%">Logout</button>

@@ -54,7 +54,7 @@
 
         <div class="form-group">
             <label for="modal-tx-description">Descrizione:</label>
-            <textarea id="modal-tx-description" maxlength="256" placeholder="Opzionale..."></textarea>
+            <textarea id="modal-tx-description" maxlength="256" placeholder="Breve descrizione..."></textarea>
             <div class="char-counter"><span id="char-count">0</span>/256</div>
             <div id="err-description" class="field-error"></div>
         </div>
@@ -217,7 +217,7 @@
             Es: "Oggi ho speso 15 euro per due pizze"
         </p>
         <div class="form-group">
-            <textarea id="quick-insert-text" maxlength="256" placeholder="Scrivi qui la tua spesa..." style="height:80px;"></textarea>
+            <textarea id="quick-insert-text" maxlength="256" placeholder="Ho speso 20€ per due pizze con Marco sabato scorso" style="height:80px;" inputmode="text" spellcheck="true" autocomplete="on"></textarea>
             <div class="char-counter"><span id="ai-char-count">0</span>/256</div>
         </div>
         <button id="btn-quick-insert" class="btn-primary" onclick="runQuickInsert()">

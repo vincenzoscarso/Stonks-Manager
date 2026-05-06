@@ -19,6 +19,7 @@ async function loadComponents() {
         { id: 'accounts', path: 'pages/accounts.html', container: 'page-container', classes: 'page' },
         { id: 'categories', path: 'pages/categories.html', container: 'page-container', classes: 'page' },
         { id: 'profile', path: 'pages/profile.html', container: 'page-container', classes: 'page' },
+        { id: 'info', path: 'pages/info.html', container: 'page-container', classes: 'page' },
         { id: 'auth', path: 'pages/auth.html', container: 'section-auth', classes: '' }
     ];
 

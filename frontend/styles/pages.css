@@ -1,5 +1,10 @@
 /* pages.css — Specific styles for single views (Dashboard, Auth, etc.) */
 
+#section-auth {
+    padding: 20px;
+    padding-top: 80px;
+}
+
 /* ── AUTHENTICATION (Login / Register) ── */
 .auth-card {
     background: var(--bg-surface);
