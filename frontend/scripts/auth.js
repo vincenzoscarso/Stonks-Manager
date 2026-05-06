@@ -231,6 +231,24 @@ function clearAppData() {
         var el = document.getElementById(id);
         if (el) { el.textContent = ""; el.style.display = "none"; }
     });
+    // ── PROFILO UTENTE ───────────────────────────────────────────────────────
+    var profName = document.getElementById("profile-display-name");
+    if (profName) profName.value = "";
+    var profEmail = document.getElementById("profile-email");
+    if (profEmail) profEmail.value = "";
+    var profErr = document.getElementById("profile-error");
+    if (profErr) { profErr.textContent = ""; profErr.style.display = "none"; }
+    var profSucc = document.getElementById("profile-success");
+    if (profSucc) profSucc.style.display = "none";
+    
+    var delProfModal = document.getElementById("profile-delete-modal");
+    if (delProfModal) delProfModal.style.display = "none";
+
+    // ── SIDEBAR E MENU ───────────────────────────────────────────────────────
+    var sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.remove("open");
+    var overlay = document.getElementById("sidebar-overlay");
+    if (overlay) overlay.classList.remove("visible");
 }
 
 // ── VISIBILITÀ SEZIONI ────────────────────────────────────────────────────────
@@ -248,4 +266,55 @@ function showApp() {
     document.getElementById("section-app").style.display = "block";
     // Carica tutti i dati iniziali quando l'utente è loggato
     appInit();
+}
+
+// ── GESTIONE PROFILO UTENTE ───────────────────────────────────────────────────
+
+async function submitEditProfile() {
+    var displayName = document.getElementById("profile-display-name").value.trim();
+    var email = document.getElementById("profile-email").value.trim(); // sola lettura
+
+    clearError("profile-error");
+    document.getElementById("profile-success").style.display = "none";
+
+    if (!displayName) {
+        showError("profile-error", "Il nome visualizzato non può essere vuoto.");
+        return;
+    }
+
+    try {
+        await apiUpdateUser(displayName, email);
+        document.getElementById("profile-success").style.display = "block";
+        
+        // Aggiorna anche l'header/sidebar se ci fosse il nome lì, oppure il currentUserProfile
+        if (window.currentUserProfile) {
+            window.currentUserProfile.display_name = displayName;
+        }
+        
+        setTimeout(() => {
+            document.getElementById("profile-success").style.display = "none";
+        }, 3000);
+    } catch (err) {
+        showError("profile-error", err.message);
+    }
+}
+
+function openDeleteProfileModal() {
+    document.getElementById("profile-delete-modal").style.display = "flex";
+}
+
+function cancelDeleteProfile() {
+    document.getElementById("profile-delete-modal").style.display = "none";
+}
+
+async function submitDeleteProfile() {
+    try {
+        await apiDeleteUser();
+        // L'eliminazione nel backend cancellerà i dati e il record utente.
+        // Dobbiamo anche sloggare l'utente da Supabase
+        await authLogout();
+    } catch (err) {
+        document.getElementById("profile-delete-error").textContent = err.message;
+        document.getElementById("profile-delete-error").style.display = "block";
+    }
 }

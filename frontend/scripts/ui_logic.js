@@ -1,35 +1,67 @@
 /**
- * ui_logic.js — Logica centralizzata per l'interfaccia (Modal Transazione, Errori, Validazioni)
+ * ui_logic.js — Logica centralizzata per l'interfaccia (Navigazione SPA, Modal Transazione, Errori)
  */
 
-// Stato globale del modal: "add" o "edit"
+// ── NAVIGAZIONE SPA ───────────────────────────────────────────────────────────
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebar-overlay");
+    if (sidebar.classList.contains("open")) {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("visible");
+    } else {
+        sidebar.classList.add("open");
+        overlay.classList.add("visible");
+    }
+}
+
+function showPage(pageId) {
+    // Nascondi tutte le pagine
+    const pages = document.querySelectorAll(".page");
+    pages.forEach(p => {
+        p.style.display = "none";
+        p.classList.remove("active");
+    });
+
+    // Mostra la pagina richiesta
+    const target = document.getElementById("page-" + pageId);
+    if (target) {
+        target.style.display = "block";
+        target.classList.add("active");
+    }
+
+    // Chiudi la sidebar se è aperta su mobile
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar && sidebar.classList.contains("open")) {
+        toggleSidebar();
+    }
+}
+
+
+// ── MODAL TRANSAZIONE ─────────────────────────────────────────────────────────
+
 let currentModalMode = "add";
 
-/**
- * Apre il modal per una nuova transazione o per modifica.
- * @param {string} mode - "add" o "edit"
- * @param {object} data - Dati iniziali (opzionali, per edit o AI)
- */
 function openTransactionModal(mode = "add", data = null) {
     currentModalMode = mode;
     const modal = document.getElementById("transaction-modal");
     const title = document.getElementById("modal-title");
 
-    // Reset errori e campi
     clearModalFields();
     clearFieldErrors();
     document.getElementById("modal-error").style.display = "none";
 
     title.innerText = (mode === "edit") ? "Modifica Transazione" : "Nuova Transazione";
 
-    // Carica conti e categorie nei select del modal
     renderModalSelects();
 
     if (data) {
         if (data.id) document.getElementById("modal-tx-id").value = data.id;
         if (data.type) {
-            document.querySelector(`input[name="modal-tx-type"][value="${data.type}"]`).checked = true;
-            updateModalCategories(); // aggiorna il select categorie in base al tipo
+            const radio = document.querySelector(`input[name="modal-tx-type"][value="${data.type}"]`);
+            if (radio) radio.checked = true;
+            updateModalCategories();
         }
         if (data.amount)      document.getElementById("modal-tx-amount").value = Math.abs(data.amount);
         if (data.date)        document.getElementById("modal-tx-date").value = data.date;
@@ -40,7 +72,6 @@ function openTransactionModal(mode = "add", data = null) {
             updateCharCount();
         }
     } else {
-        // Default: data odierna
         document.getElementById("modal-tx-date").valueAsDate = new Date();
         updateModalCategories();
     }
@@ -52,9 +83,6 @@ function closeTransactionModal() {
     document.getElementById("transaction-modal").style.display = "none";
 }
 
-/**
- * Pulisce tutti i campi del modal
- */
 function clearModalFields() {
     document.getElementById("modal-tx-id").value = "";
     document.getElementById("modal-tx-amount").value = "";
@@ -62,15 +90,13 @@ function clearModalFields() {
     document.getElementById("char-count").innerText = "0";
 }
 
-/**
- * Sincronizza il select categorie del modal con il tipo (Entrata/Uscita)
- */
 function updateModalCategories() {
-    const type = document.querySelector('input[name="modal-tx-type"]:checked').value;
+    const checked = document.querySelector('input[name="modal-tx-type"]:checked');
+    if (!checked) return;
+    const type = checked.value;
     const categorySelect = document.getElementById("modal-tx-category");
 
-    // Usa la funzione globale di categories.js per filtrare
-    const filtered = window.allCategories.filter(c => c.type === type);
+    const filtered = (window.allCategories || []).filter(c => c.type === type);
 
     categorySelect.innerHTML = '<option value="">-- Seleziona --</option>';
     filtered.forEach(c => {
@@ -81,13 +107,10 @@ function updateModalCategories() {
     });
 }
 
-/**
- * Popola i select di conti e categorie (chiamata all'apertura)
- */
 function renderModalSelects() {
     const accountSelect = document.getElementById("modal-tx-account");
     accountSelect.innerHTML = '<option value="">-- Seleziona --</option>';
-    window.allAccounts.forEach(a => {
+    (window.allAccounts || []).forEach(a => {
         const opt = document.createElement("option");
         opt.value = a.id;
         opt.innerText = a.name;
@@ -95,9 +118,6 @@ function renderModalSelects() {
     });
 }
 
-/**
- * Valida i dati prima dell'invio
- */
 function validateModalData() {
     clearFieldErrors();
     let isValid = true;
@@ -112,7 +132,6 @@ function validateModalData() {
         showFieldError("amount", "Inserisci un importo valido");
         isValid = false;
     }
-
     if (!date) {
         showFieldError("date", "La data è obbligatoria");
         isValid = false;
@@ -125,17 +144,14 @@ function validateModalData() {
             isValid = false;
         }
     }
-
     if (!category) {
         showFieldError("category", "Seleziona una categoria");
         isValid = false;
     }
-
     if (!account) {
         showFieldError("account", "Seleziona un conto");
         isValid = false;
     }
-
     if (description.length > 256) {
         showFieldError("description", "La descrizione è troppo lunga (max 256)");
         isValid = false;
@@ -165,15 +181,11 @@ function updateCharCount() {
     document.getElementById("char-count").innerText = len;
 }
 
-// Event listener per il conteggio caratteri della descrizione transazione
 document.addEventListener("DOMContentLoaded", () => {
     const desc = document.getElementById("modal-tx-description");
     if (desc) desc.addEventListener("input", updateCharCount);
 });
 
-/**
- * Funzione ponte per salvare (chiamata dal tasto Salva del modal)
- */
 async function saveTransactionFromModal() {
     if (!validateModalData()) return;
 
@@ -194,7 +206,6 @@ async function saveTransactionFromModal() {
             await apiCreateTransaction(data);
         }
         closeTransactionModal();
-        // Aggiorna dashboard e storico
         loadAccounts();
         loadTransactions();
     } catch (err) {
@@ -204,7 +215,6 @@ async function saveTransactionFromModal() {
     }
 }
 
-// Funzioni shortcut per index.html
 function openTransactionModalForAdd() {
     openTransactionModal("add");
 }

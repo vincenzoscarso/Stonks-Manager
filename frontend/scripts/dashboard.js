@@ -140,9 +140,21 @@ function updateCategoryList() {
     entries.forEach(function (entry) {
         var name  = entry[0];
         var total = entry[1];
-        var p = document.createElement("p");
-        p.textContent = name + ": " + formatCurrency(total);
-        container.appendChild(p);
+        
+        var div = document.createElement("div");
+        div.className = "dashboard-category-item";
+        
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "name";
+        nameSpan.textContent = name;
+        
+        var amountSpan = document.createElement("span");
+        amountSpan.className = "amount " + dashChartType;
+        amountSpan.textContent = formatCurrency(total);
+        
+        div.appendChild(nameSpan);
+        div.appendChild(amountSpan);
+        container.appendChild(div);
     });
 }
 

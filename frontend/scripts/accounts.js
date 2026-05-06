@@ -32,20 +32,24 @@ function renderAccountsList() {
         var balance = calculateAccountBalance(account.id);
 
         var div = document.createElement("div");
-        div.className = "account-item";
+        div.className = "transaction-card";
         div.dataset.id = account.id;
 
-        // Colonna info
-        var infoDiv = document.createElement("div");
-        infoDiv.className = "account-item-info";
-        infoDiv.innerHTML =
-            "<strong>" + escapeHtml(account.name) + "</strong>" +
-            " — Saldo: <span class='balance'>" + formatCurrency(balance) + "</span>" +
-            " <small>[incluso nel totale: " + (account.include_in_total ? "Sì" : "No") + "]</small>";
+        var topDiv = document.createElement("div");
+        topDiv.className = "card-top";
+        topDiv.innerHTML = "<span class='card-category'>" + escapeHtml(account.name) + "</span>";
 
-        // Colonna azioni
+        var descDiv = document.createElement("div");
+        descDiv.className = "card-description";
+        descDiv.innerHTML = "Incluso nel totale globale: <strong>" + (account.include_in_total ? "Sì" : "No") + "</strong>";
+
+        var bottomDiv = document.createElement("div");
+        bottomDiv.className = "card-bottom";
+        var amountClass = balance >= 0 ? "income" : "expense";
+        bottomDiv.innerHTML = "<span class='card-amount " + amountClass + "'>" + formatCurrency(balance) + "</span>";
+
         var actionsDiv = document.createElement("div");
-        actionsDiv.className = "account-item-actions";
+        actionsDiv.className = "card-actions";
 
         var editBtn = document.createElement("button");
         editBtn.className = "btn-secondary";
@@ -59,7 +63,10 @@ function renderAccountsList() {
 
         actionsDiv.appendChild(editBtn);
         actionsDiv.appendChild(delBtn);
-        div.appendChild(infoDiv);
+
+        div.appendChild(topDiv);
+        div.appendChild(descDiv);
+        div.appendChild(bottomDiv);
         div.appendChild(actionsDiv);
 
         container.appendChild(div);
@@ -139,36 +146,25 @@ function renderAccountSelects() {
     renderCombineCheckboxes();
 }
 
-// ── CREA CONTO ────────────────────────────────────────────────────────────────
+// ── MODAL CONTO (CREAZIONE / MODIFICA) ────────────────────────────────────────
 
-async function submitNewAccount() {
-    var name = document.getElementById("new-account-name").value.trim();
-    var includeInTotal = document.getElementById("new-account-include").checked;
+function openAddAccountModal() {
+    document.getElementById("account-modal-title").innerText = "Nuovo Conto";
+    document.getElementById("edit-account-id").value = "";
+    document.getElementById("edit-account-name").value = "";
+    document.getElementById("edit-account-include").checked = true;
+    clearError("account-edit-error");
+    var errName = document.getElementById("err-edit-account-name");
+    if (errName) { errName.textContent = ""; errName.style.display = "none"; }
 
-    if (!name) {
-        showError("accounts-error", "Il nome del conto è obbligatorio.");
-        return;
-    }
-
-    try {
-        await apiCreateAccount(name, includeInTotal);
-        document.getElementById("new-account-name").value = "";
-        document.getElementById("new-account-include").checked = true;
-        clearError("accounts-error");
-        await loadAccounts();
-        await loadTransactions(); // ricarica le transazioni per aggiornare i saldi
-        updateDashboard();
-    } catch (err) {
-        showError("accounts-error", err.message);
-    }
+    document.getElementById("account-edit-modal").style.display = "flex";
 }
-
-// ── MODIFICA CONTO (modal overlay) ───────────────────────────────────────────
 
 function openEditAccount(accountId) {
     var account = allAccounts.find(function (a) { return a.id === accountId; });
     if (!account) return;
 
+    document.getElementById("account-modal-title").innerText = "Modifica Conto";
     document.getElementById("edit-account-id").value = account.id;
     document.getElementById("edit-account-name").value = account.name;
     document.getElementById("edit-account-include").checked = account.include_in_total;
@@ -193,9 +189,14 @@ async function submitEditAccount() {
     }
 
     try {
-        await apiUpdateAccount(id, name, includeInTotal);
+        if (id) {
+            await apiUpdateAccount(id, name, includeInTotal);
+        } else {
+            await apiCreateAccount(name, includeInTotal);
+        }
         document.getElementById("account-edit-modal").style.display = "none";
         await loadAccounts();
+        await loadTransactions();
         updateDashboard();
     } catch (err) {
         showError("account-edit-error", err.message);

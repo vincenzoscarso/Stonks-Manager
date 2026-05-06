@@ -209,6 +209,10 @@ function apiUpdateUser(displayName, email) {
     });
 }
 
+function apiDeleteUser() {
+    return apiFetch(API_PREFIX + "/users", "DELETE");
+}
+
 // ── AI ────────────────────────────────────────────────────────────────────────
 
 function apiQuickInsert(text) {

@@ -31,23 +31,24 @@ function renderCategoriesList() {
         var isGlobal = !cat.user_profile_id; // categorie predefinite hanno user_profile_id null
 
         var div = document.createElement("div");
-        div.className = "category-item";
+        div.className = "transaction-card";
 
-        // Colonna info
-        var infoDiv = document.createElement("div");
-        infoDiv.className = "category-item-info";
-        infoDiv.innerHTML =
-            "<strong>" + escapeHtml(cat.name) + "</strong>" +
-            " <small>[" + cat.type + "]</small>" +
-            (cat.description ? " — <span>" + escapeHtml(cat.description) + "</span>" : "") +
-            (isGlobal ? " <em>(predefinita)</em>" : "");
+        var topDiv = document.createElement("div");
+        topDiv.className = "card-top";
+        topDiv.innerHTML = "<span class='card-category'>" + escapeHtml(cat.name) + (isGlobal ? " <em>(predefinita)</em>" : "") + "</span>" +
+                           "<span class='card-date'>[" + (cat.type === 'expense' ? 'Uscita' : 'Entrata') + "]</span>";
 
-        div.appendChild(infoDiv);
+        var descDiv = document.createElement("div");
+        descDiv.className = "card-description";
+        descDiv.textContent = cat.description || "";
+
+        div.appendChild(topDiv);
+        div.appendChild(descDiv);
 
         // Colonna azioni (solo per categorie dell'utente)
         if (!isGlobal) {
             var actionsDiv = document.createElement("div");
-            actionsDiv.className = "category-item-actions";
+            actionsDiv.className = "card-actions";
 
             var editBtn = document.createElement("button");
             editBtn.className = "btn-secondary";
@@ -91,15 +92,15 @@ function renderCategorySelects() {
 // Select categoria filtrata per tipo income/expense
 // Usata nel form transazione (cambia in base al radio entrata/uscita)
 function renderCategorySelectsByType() {
-    var typeRadios = document.querySelectorAll("input[name='tx-type']");
+    var typeRadios = document.querySelectorAll("input[name='modal-tx-type']");
     var selectedType = "expense"; // default
     typeRadios.forEach(function (r) {
         if (r.checked) selectedType = r.value;
     });
 
-    var sel = document.getElementById("tx-category");
+    var sel = document.getElementById("modal-tx-category");
     if (!sel) return;
-    sel.innerHTML = "<option value=''>-- Seleziona categoria --</option>";
+    sel.innerHTML = "<option value=''>-- Seleziona --</option>";
     allCategories.forEach(function (cat) {
         if (cat.type === selectedType) {
             var opt = document.createElement("option");
@@ -110,43 +111,30 @@ function renderCategorySelectsByType() {
     });
 }
 
-// ── CREA CATEGORIA ────────────────────────────────────────────────────────────
+// ── MODAL CATEGORIA (CREAZIONE / MODIFICA) ────────────────────────────────────────
 
-async function submitNewCategory() {
-    var name = document.getElementById("new-cat-name").value.trim();
-    var type = document.getElementById("new-cat-type").value;
-    var description = document.getElementById("new-cat-description").value.trim();
+function openAddCategoryModal() {
+    document.getElementById("category-modal-title").innerText = "Nuova Categoria";
+    document.getElementById("edit-cat-id").value = "";
+    document.getElementById("edit-cat-name").value = "";
+    document.querySelector('input[name="edit-cat-type"][value="expense"]').checked = true;
+    document.getElementById("edit-cat-description").value = "";
+    document.getElementById("edit-cat-char-count").textContent = "0";
+    clearError("category-edit-error");
+    var errName = document.getElementById("err-edit-cat-name");
+    if (errName) { errName.textContent = ""; errName.style.display = "none"; }
 
-    if (!name) {
-        showError("categories-error", "Il nome è obbligatorio.");
-        return;
-    }
-    if (!type) {
-        showError("categories-error", "Seleziona un tipo (entrata/uscita).");
-        return;
-    }
-
-    try {
-        await apiCreateCategory(name, type, description || null);
-        document.getElementById("new-cat-name").value = "";
-        document.getElementById("new-cat-type").value = "";
-        document.getElementById("new-cat-description").value = "";
-        clearError("categories-error");
-        await loadCategories();
-    } catch (err) {
-        showError("categories-error", err.message);
-    }
+    document.getElementById("category-edit-modal").style.display = "flex";
 }
-
-// ── MODIFICA CATEGORIA (modal overlay) ───────────────────────────────────────
 
 function openEditCategory(categoryId) {
     var cat = allCategories.find(function (c) { return c.id === categoryId; });
     if (!cat) return;
 
+    document.getElementById("category-modal-title").innerText = "Modifica Categoria";
     document.getElementById("edit-cat-id").value = cat.id;
     document.getElementById("edit-cat-name").value = cat.name;
-    document.getElementById("edit-cat-type").value = cat.type;
+    document.querySelector(`input[name="edit-cat-type"][value="${cat.type}"]`).checked = true;
     document.getElementById("edit-cat-description").value = cat.description || "";
     document.getElementById("edit-cat-char-count").textContent = (cat.description || "").length;
     clearError("category-edit-error");
@@ -159,7 +147,7 @@ function openEditCategory(categoryId) {
 async function submitEditCategory() {
     var id = document.getElementById("edit-cat-id").value;
     var name = document.getElementById("edit-cat-name").value.trim();
-    var type = document.getElementById("edit-cat-type").value;
+    var type = document.querySelector('input[name="edit-cat-type"]:checked').value;
     var description = document.getElementById("edit-cat-description").value.trim();
 
     clearError("category-edit-error");
@@ -169,17 +157,17 @@ async function submitEditCategory() {
         if (errName) { errName.textContent = "Il nome è obbligatorio."; errName.style.display = "block"; }
         return;
     }
-    if (!type) {
-        showError("category-edit-error", "Seleziona un tipo.");
-        return;
-    }
     if (description.length > 256) {
         showError("category-edit-error", "La descrizione è troppo lunga (max 256 caratteri).");
         return;
     }
 
     try {
-        await apiUpdateCategory(id, name, type, description || null);
+        if (id) {
+            await apiUpdateCategory(id, name, type, description || null);
+        } else {
+            await apiCreateCategory(name, type, description || null);
+        }
         document.getElementById("category-edit-modal").style.display = "none";
         clearError("category-edit-error");
         await loadCategories();
