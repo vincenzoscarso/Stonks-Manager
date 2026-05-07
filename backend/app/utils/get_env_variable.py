@@ -1,9 +1,10 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-ENV_PATH = "C:\\Users\\vince\\Desktop\\Code\\_Projects\\Stonks-Manager\\.env"
 
-load_dotenv(dotenv_path=ENV_PATH, override=True)
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+load_dotenv(dotenv_path=PROJECT_ROOT / ".env", override=True)
 
 
 def getEnvVariable(name: str) -> str:
