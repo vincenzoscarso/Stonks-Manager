@@ -10,7 +10,7 @@ L'IA poi restituirà le informazioni nuovamente all'app che mostrera un form gi�
 ## Configurazione
 
 > [!NOTE]
-> Prima della clonazione è necessaria l'installazione di: Python e Git 
+> Prima della clonazione è necessaria l'installazione di [Python](https://www.python.org/downloads/release/python-3132/) e [Git](https://git-scm.com/install/) 
 
 ### 1. Clonazione e accesso al progetto
 

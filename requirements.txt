@@ -12,14 +12,19 @@ anyio==4.13.0
     # via
     #   httpx
     #   starlette
+build==1.5.0
+    # via pip-tools
 certifi==2026.4.22
     # via
     #   httpcore
     #   httpx
 click==8.3.3
-    # via uvicorn
+    # via
+    #   pip-tools
+    #   uvicorn
 colorama==0.4.6
     # via
+    #   build
     #   click
     #   pytest
 deprecation==2.1.0
@@ -75,8 +80,12 @@ mypy-extensions==1.1.0
     # via typing-inspect
 packaging==26.2
     # via
+    #   build
     #   deprecation
     #   pytest
+    #   wheel
+pip-tools==7.5.3
+    # via -r requirements.in
 pluggy==1.6.0
     # via pytest
 postgrest==0.18.0
@@ -95,6 +104,10 @@ pygments==2.20.0
     # via pytest
 pyjwt==2.12.1
     # via gotrue
+pyproject-hooks==1.2.0
+    # via
+    #   build
+    #   pip-tools
 pytest==9.0.3
     # via -r requirements.in
 python-dateutil==2.9.0.post0
@@ -137,3 +150,9 @@ uvicorn==0.46.0
     # via -r requirements.in
 websockets==15.0.1
     # via realtime
+wheel==0.47.0
+    # via pip-tools
+
+# The following packages are considered to be unsafe in a requirements file:
+# pip
+# setuptools
