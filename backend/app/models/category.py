@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class NewCategory(BaseModel):
     name: str = Field(..., min_length=1, max_length=64)
     type: Literal["income", "expense"]
-    description: Optional[str] = None
+    description: Optional[str] = Field(default=None, max_length=256)
 
 
 class Category(BaseModel):

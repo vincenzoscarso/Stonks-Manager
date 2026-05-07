@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from pydantic import BaseModel
+from backend.app.models.ai import QuickInsertRequest
 from backend.app.services.ai_service import AIService
 from backend.app.services.category_service import CategoryService
 from backend.app.utils.get_current_user import getCurrentUser
@@ -7,10 +7,6 @@ from backend.app.utils.get_supabase_client import getSupabaseClient
 from supabase import Client
 
 router = APIRouter(tags=["AI"])
-
-
-class QuickInsertRequest(BaseModel):
-    text: str
 
 
 @router.post("/quick-insert")

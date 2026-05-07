@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class NewTransaction(BaseModel):
     type: Literal["income", "expense"]
-    description: Optional[str] = None
+    description: Optional[str] = Field(default=None, max_length=256)
     amount: Decimal = Field(..., gt=0)
     date: datetime
     account_id: UUID
