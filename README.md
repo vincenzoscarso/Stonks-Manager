@@ -1,25 +1,25 @@
 # Stonks Manager
 
+Stonks-Manager è un app finanziaria (se così si puo definire) che permette il semplice controllo dei propri movimenti giornalieri. Permette di salvare i movimenti categorizzandoli opportunamente e assegnandoli ai dovuti conti di appartenenza. 
 
-
-
-
-## Prerequisiti
-
-- Python
-- Git
-- Un progetto Supabase (per il database e l'autenticazione)
+Stonks-Manager permette funzioni di inserimento intelligente dei movimenti questo he possibile in due modi:
+- sia via linguaggio umano ad esempio: "Ho mangiato una pizza con Luca sabato e ho speso 15 euro"
+- sia via scansione automatica della foto di uno scontrino
+L'IA poi restituirà le informazioni nuovamente all'app che mostrera un form già compilato per la revisione dei dati inseriti.
 
 ## Configurazione
 
-### 1. Clona e accedi al progetto
+> [!NOTE]
+> Prima della clonazione è necessaria l'installazione di: Python e Git 
+
+### 1. Clonazione e accesso al progetto
 
 ```bash
 git clone <repository-url>
 cd Stonks-Manager
 ```
 
-### 2. Crea e attiva l'ambiente virtuale
+### 2. Creazione e attivazione dell'ambiente virtuale di Python
 
 **Windows (PowerShell):**
 ```powershell
@@ -33,75 +33,69 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Installa le dipendenze
+### 3. Installazione delle dipendenze
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configura le variabili di ambiente
+### 4. Configurazione delle variabili di ambiente
 
-Crea un file `.env` nella radice del progetto con le seguenti variabili:
+Crea un file `.env` nella radice del progetto o rinomina il file già esistente [.env.example](./.env.example). Sostituisci poi i valori con le tue credenziali e valori. 
 
-```
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_anonymous_key
-API_BASE_URL=http://localhost:8000/api
-TEST_USER_EMAIL=test@example.com
-TEST_USER_PASSWORD=testpassword123
-```
-
-Sostituisci i valori con le tue credenziali Supabase effettive.
-
-### 5. Configura il database
+### 5. Configurazione del database
 
 Se è la prima volta che esegui il progetto, inizializza il database Supabase eseguendo gli script SQL nella cartella `database/` in questo ordine:
 
 1. `schema.sql` - Crea le tabelle principali
 2. `default_categories.sql` - Popola le categorie di transazione predefinite
-3. `local_auth_setup.sql` - Configura l'autenticazione locale (se necessario)
+3. `local_auth_setup.sql` - Configura l'autenticazione locale (SOLO per database locali)
 
 ## Esecuzione dell'applicazione
 
 L'applicazione è costituita da due server che devono essere eseguiti contemporaneamente:
 
-### Avvia il backend API
+### Avvio dell'API backend
 
 **Windows:**
 ```powershell
-inv run
+inv runBack
 ```
 
 **Linux/macOS:**
 ```bash
-invoke run
+invoke runBack
 ```
 
-Questo avvia il server FastAPI su `http://localhost:8000/api`
+Questo avvia il server FastAPI su [http://localhost:8000](http://localhost:8000)
 
-### Avvia il server frontend (in un nuovo terminale)
+### Avvio del server frontend (in un nuovo terminale)
 
 **Windows:**
 ```powershell
-python ui_server.py
+invoke runFront
 ```
 
 **Linux/macOS:**
 ```bash
-python3 ui_server.py
+invoke runFront
 ```
 
-Questo serve il frontend su `http://localhost:3000`
+Questo serve il frontend su [http://localhost:3000](http://localhost:3000)
 
-Quindi apri il browser e accedi a `http://localhost:3000`
 
-## Attività disponibili
+## Task disponibili
 
 Il progetto utilizza Invoke per l'automazione delle attività. Esegui uno di questi comandi dalla radice del progetto:
 
 **Esegui il server backend:**
 ```
-invoke run
+invoke runBack
+```
+
+**Esegui il server frontend:**
+```
+invoke runFront
 ```
 
 **Esegui i test delle route:**
@@ -132,46 +126,6 @@ invoke checkLeaks
 ```
 
 Verifica che nessuna variabile di ambiente da `.env` sia stata eseguita il commit nella cronologia di Git.
-
-## Struttura del progetto
-
-```
-backend/          - Applicazione FastAPI
-├── app/
-│   ├── main.py              - Punto di ingresso dell'applicazione
-│   ├── config/              - Configurazione e prompt
-│   ├── models/              - Modelli del database
-│   ├── routes/              - Endpoint API
-│   ├── services/            - Logica di business
-│   └── utils/               - Funzioni di utilità
-├── tests/         - File di test
-
-frontend/         - Frontend HTML/CSS/JS
-├── index.html     - Pagina principale
-├── pages/         - Singole pagine
-├── scripts/       - Logica JavaScript
-└── styles/        - Fogli di stile CSS
-
-database/         - Script di configurazione SQL
-docs/             - Documentazione
-ui_server.py      - Server HTTP frontend
-tasks.py          - Definizioni di attività Invoke
-requirements.txt  - Dipendenze Python
-```
-
-## Test
-
-Esegui i test delle route per verificare che tutti gli endpoint API funzionino:
-
-```
-invoke routeTest
-```
-
-Lo script di test eseguirà:
-- Creazione dei dati di test (categorie, account, transazioni)
-- Test di tutte le operazioni CRUD
-- Test delle route AI per la scansione delle ricevute
-- Pulizia dei dati di test successivamente (a meno che non venga passato `--no-cleanup`)
 
 ## Note di sviluppo
 
