@@ -11,7 +11,7 @@ ENV_PATH = ".\\.env"
 
 @task
 def run(c: Context):
-    """Simply runs the code."""
+    """Simply runs the backend uvicorn server."""
 
     __clearScreen()
 
