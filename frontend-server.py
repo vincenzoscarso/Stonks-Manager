@@ -1,23 +1,12 @@
-"""
-server.py — Mini server HTTP per il frontend su localhost:3000
-
-Serve la cartella frontend/ come root statica.
-Intercetta GET /config.js e restituisce le variabili Supabase
-lette dal file .env nella root del progetto.
-
-Avvio: python server.py  (dalla root del progetto)
-Dipendenze: pip install python-dotenv
-"""
-
 import http.server
 import socketserver
 import os
 from dotenv import dotenv_values
 
 PORT = 3000
-ROOT_DIR     = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(ROOT_DIR, "frontend")
-ENV_PATH     = os.path.join(ROOT_DIR, ".env")
+ENV_PATH = os.path.join(ROOT_DIR, ".env")
 
 
 def load_config():
@@ -41,20 +30,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             try:
                 super().do_GET()
             except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
-                pass # Ignora gli errori di disconnessione improvvisa del client
+                pass
 
     def handle(self):
         try:
             super().handle()
         except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
-            pass # Ignora gli errori se la connessione viene chiusa prima del completamento
+            pass
 
     def _serve_config_js(self):
         url, key = load_config()
-        js_content = (
-            f'window.SUPABASE_URL = "{url}";\n'
-            f'window.SUPABASE_KEY = "{key}";\n'
-        )
+        js_content = f'window.SUPABASE_URL = "{url}";\n' f'window.SUPABASE_KEY = "{key}";\n'
         body = js_content.encode("utf-8")
 
         self.send_response(200)
@@ -69,9 +55,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+
     class ThreadingServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         pass
-    
+
     with ThreadingServer(("", PORT), Handler) as httpd:
         print(f"Frontend disponibile su http://localhost:{PORT}")
         print(f"Leggo configurazione da: {ENV_PATH}")
@@ -80,4 +67,3 @@ if __name__ == "__main__":
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\nServer fermato.")
-
