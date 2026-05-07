@@ -43,7 +43,7 @@ async function apiFetch(path, method, body) {
         response = await fetch(BACKEND_URL + path, options);
     } catch (networkErr) {
         // Network error (server offline, timeout, CORS, etc.)
-        throw new Error("Impossibile contattare il server. Controlla la connessione.");
+        throw new Error("Si è verificato un errore.");
     }
 
     if (!response.ok) {
@@ -93,7 +93,7 @@ async function apiFetchFile(path, formData) {
     try {
         response = await fetch(BACKEND_URL + path, options);
     } catch (networkErr) {
-        throw new Error("Impossibile contattare il server. Controlla la connessione.");
+        throw new Error("Si è verificato un errore.");
     }
 
     if (!response.ok) {
