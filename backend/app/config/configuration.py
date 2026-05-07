@@ -10,5 +10,7 @@ RATE_LIMIT_AI: int = 3
 RATE_LIMIT_WINDOW_SECONDS: int = 60
 
 # AI Service
+AI_TEXT_MODEL: str = "mistral-large-latest"
+AI_VISION_MODEL: str = "pixtral-12b-2409"
 AI_QUICK_INSERT_TIMEOUT: float = 30.0
 AI_SCAN_RECEIPT_TIMEOUT: float = 60.0

@@ -4,15 +4,20 @@ import base64
 from typing import Any, Dict, List
 from backend.app.utils.get_env_variable import getEnvVariable
 from backend.app.config.prompts import TEXT_PROMPT, VISION_PROMPT
-from backend.app.config.configuration import AI_QUICK_INSERT_TIMEOUT, AI_SCAN_RECEIPT_TIMEOUT
+from backend.app.config.configuration import (
+    AI_TEXT_MODEL,
+    AI_VISION_MODEL,
+    AI_QUICK_INSERT_TIMEOUT,
+    AI_SCAN_RECEIPT_TIMEOUT,
+)
 
 
 class AIService:
     def __init__(self) -> None:
         self.api_key = getEnvVariable("AI_API_KEY")
         self.api_url = getEnvVariable("AI_API_URL")
-        self.text_model = getEnvVariable("AI_TEXT_MODEL")
-        self.vision_model = getEnvVariable("AI_VISION_MODEL")
+        self.text_model = AI_TEXT_MODEL
+        self.vision_model = AI_VISION_MODEL
 
         self.QUICK_INSERT_TIMEOUT = AI_QUICK_INSERT_TIMEOUT
         self.SCAN_RECEIPT_TIMEOUT = AI_SCAN_RECEIPT_TIMEOUT
