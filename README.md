@@ -1,4 +1,4 @@
-# Stonks Manager
+# Stonks Manager <!-- omit in toc -->
 
 Stonks-Manager è una semplice app finanziaria che permette il controllo dei propri movimenti giornalieri. Permette di salvare i movimenti categorizzandoli opportunamente e assegnandoli ai dovuti conti di appartenenza. 
 
@@ -7,10 +7,28 @@ Stonks-Manager permette anche funzioni di inserimento intelligente dei movimenti
 - sia via scansione automatica della foto di uno scontrino
 L'IA poi restituirà le informazioni nuovamente all'app che mostrera un form già compilato per la revisione dei dati inseriti.
 
+
+## Tabella dei contenuti <!-- omit in toc -->
+
+- [Configurazione](#configurazione)
+  - [1. Clonazione e accesso al progetto](#1-clonazione-e-accesso-al-progetto)
+  - [2. Creazione e attivazione dell'ambiente virtuale di Python](#2-creazione-e-attivazione-dellambiente-virtuale-di-python)
+  - [3. Installazione delle dipendenze](#3-installazione-delle-dipendenze)
+  - [4. Configurazione delle variabili di ambiente](#4-configurazione-delle-variabili-di-ambiente)
+  - [5. Configurazione del database](#5-configurazione-del-database)
+- [Esecuzione dell'applicazione](#esecuzione-dellapplicazione)
+  - [Avvio dell'API backend](#avvio-dellapi-backend)
+  - [Avvio del server frontend (in un nuovo terminale)](#avvio-del-server-frontend-in-un-nuovo-terminale)
+- [Task disponibili](#task-disponibili)
+- [Note di sviluppo](#note-di-sviluppo)
+- [Risoluzione dei problemi](#risoluzione-dei-problemi)
+
+
 ## Configurazione
 
 > [!NOTE]
-> Prima della clonazione è necessaria l'installazione di [Python](https://www.python.org/downloads/release/python-3132/) e [Git](https://git-scm.com/install/) 
+> Prima della clonazione è necessaria l'installazione di [Python](https://www.python.org/downloads/release/python-3132/) (con pip) e [Git](https://git-scm.com/install/) 
+
 
 ### 1. Clonazione e accesso al progetto
 
@@ -43,6 +61,7 @@ pip install -r requirements.txt
 
 Crea un file `.env` nella radice del progetto o rinomina il file già esistente [.env.example](./.env.example). Sostituisci poi i valori con le tue credenziali e valori. 
 
+
 ### 5. Configurazione del database
 
 Se è la prima volta che esegui il progetto, inizializza il database Supabase eseguendo gli script SQL nella cartella `database/` in questo ordine:
@@ -55,11 +74,12 @@ Se è la prima volta che esegui il progetto, inizializza il database Supabase es
 
 L'applicazione è costituita da due server che devono essere eseguiti contemporaneamente:
 
+
 ### Avvio dell'API backend
 
 **Windows:**
 ```powershell
-inv runBack
+invoke runBack
 ```
 
 **Linux/macOS:**
@@ -68,6 +88,7 @@ invoke runBack
 ```
 
 Questo avvia il server FastAPI su [http://localhost:8000](http://localhost:8000)
+
 
 ### Avvio del server frontend (in un nuovo terminale)
 
@@ -127,6 +148,7 @@ invoke checkLeaks
 
 Verifica che nessuna variabile di ambiente da `.env` sia stata eseguita il commit nella cronologia di Git.
 
+
 ## Note di sviluppo
 
 - Il backend API viene eseguito sulla porta 8000
@@ -134,6 +156,7 @@ Verifica che nessuna variabile di ambiente da `.env` sia stata eseguita il commi
 - Le variabili di ambiente vengono caricate da `.env` utilizzando il percorso relativo dalla radice del progetto
 - Le query del database utilizzano la libreria client Supabase
 - La suite di test richiede credenziali Supabase valide in `.env`
+
 
 ## Risoluzione dei problemi
 
@@ -145,4 +168,3 @@ Assicurati che tutte le variabili richieste in `.env` siano impostate. L'app gen
 
 **Porta già in uso:**
 Se la porta 8000 o 3000 è già in uso, modifica i file di configurazione del server pertinenti per utilizzare porte diverse.
-
