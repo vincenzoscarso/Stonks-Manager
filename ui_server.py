@@ -26,7 +26,7 @@ def load_config():
     url = env.get("SUPABASE_URL", "")
     key = env.get("SUPABASE_KEY", "")
     if not url or not key:
-        print("[WARNING] SUPABASE_URL or SUPABASE_KEY not found in .env!")
+        print("[WARNING] SUPABASE_URL or SUPABASE_KEY not found in .env!", flush=True)
     return url, key
 
 
@@ -65,7 +65,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, format, *args):
-        print(f"[{self.address_string()}] {format % args}")
+        print(f"[{self.address_string()}] {format % args}", flush=True)
 
 
 if __name__ == "__main__":
@@ -74,10 +74,10 @@ if __name__ == "__main__":
         pass
     
     with ThreadingServer(("", PORT), Handler) as httpd:
-        print(f"Frontend available at http://localhost:{PORT}")
-        print(f"Reading configuration from: {ENV_PATH}")
-        print("Press Ctrl+C to stop the server.")
+        print(f"Frontend available at http://localhost:{PORT}", flush=True)
+        print(f"Reading configuration from: {ENV_PATH}", flush=True)
+        print("Press Ctrl+C to stop the server.", flush=True)
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\nServer stopped.")
+            print("\nServer stopped.", flush=True)
