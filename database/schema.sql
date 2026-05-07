@@ -146,6 +146,29 @@ CREATE TRIGGER on_auth_user_created
 -- 5. CLEANUP AND GLOBAL TRIGGERS
 -- ==========================================
 
+-- Cleanup User Data on Account Deletion
+CREATE OR REPLACE FUNCTION internal.cleanup_user_data()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- 1. Elimina prima le transazioni collegate agli account dell'utente
+    DELETE FROM public.transaction 
+    WHERE account_id IN (SELECT id FROM public.account WHERE user_profile_id = OLD.id);
+
+    -- 2. Elimina gli account
+    DELETE FROM public.account WHERE user_profile_id = OLD.id;
+
+    -- 3. Elimina le categorie personalizzate
+    DELETE FROM public.category WHERE user_profile_id = OLD.id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER tr_cleanup_user_data
+BEFORE DELETE ON public.user_profile
+FOR EACH ROW EXECUTE FUNCTION internal.cleanup_user_data();
+
+-- Global RLS setup
 DROP EVENT TRIGGER IF EXISTS ensure_rls;
 
 DROP FUNCTION IF EXISTS public.handle_new_user();
