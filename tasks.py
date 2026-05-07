@@ -9,8 +9,18 @@ PYTHON = ".venv\\Scripts\\python.exe"
 ENV_PATH = ".\\.env"
 
 
+
 @task
-def run(c: Context):
+def runFront(c: Context):
+    """Simply runs the frontend http server handler."""
+
+    __clearScreen()
+
+    c.run("python ui_server.py")
+
+
+@task
+def runBack(c: Context):
     """Simply runs the backend uvicorn server."""
 
     __clearScreen()
