@@ -19,12 +19,30 @@ def run(c: Context):
 
 
 @task
-def routeTest(c: Context):
-    """Runs a script that tests each route one by one. Requires human intervention."""
+def routeTest(c: Context, jwt=False, no_cleanup=False, keep_user=False):
+    """Runs a script that tests each route one by one. Requires human intervention.
+    
+    Options:
+        --jwt: Only retrieve JWT token without running tests
+        --no-cleanup: Skip cleanup of test data after tests
+        --keep-user: Keep test user after tests complete
+    """
 
     __clearScreen()
 
-    c.run("python -m tests.full_routes_test")
+    args = []
+    if jwt:
+        args.append("--jwt")
+    if no_cleanup:
+        args.append("--no-cleanup")
+    if keep_user:
+        args.append("--keep-user")
+
+    cmd = "python -m backend.tests.full_routes_test"
+    if args:
+        cmd += " " + " ".join(args)
+
+    c.run(cmd)
 
 
 @task

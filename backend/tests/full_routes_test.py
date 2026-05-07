@@ -2,7 +2,7 @@ import httpx
 import os
 import time
 from supabase import create_client
-from app.utils.get_env_variable import getEnvVariable
+from backend.app.utils.get_env_variable import getEnvVariable
 
 # --- CONFIGURATION ---
 BASE_URL_RAW = getEnvVariable("API_BASE_URL") if os.environ.get("API_BASE_URL") else "http://localhost:8000/api"
@@ -24,16 +24,18 @@ def get_auth_token() -> str:
         return str(res.session.access_token)  # type: ignore
 
 
+import sys
+
 def main():
-    should_only_get_token = input("Do you only want JWT? (y/N): ").lower() == "y"
+    should_only_get_token = "--jwt" in sys.argv
+    should_cleanup = "--no-cleanup" not in sys.argv
+    should_delete_user = "--keep-user" not in sys.argv
 
     if should_only_get_token:
         print("JWT:")
         print(get_auth_token())
         return
 
-    should_cleanup = input("Perform final cleanup (delete items)? (y/N): ").lower() == "y"
-    should_delete_user = input(f"Remove {TEST_EMAIL} from Auth? (y/N): ").lower() == "y"
     token = get_auth_token()
     client = httpx.Client(headers={"Authorization": f"Bearer {token}"}, timeout=TIMEOUT)
     ids = {"cat": "", "acc": "", "tx": ""}
@@ -63,10 +65,10 @@ def main():
     # -- Category Routes --
     print("\n[Category]")
     test_route("get", "/categories")
-    resp = test_route("post", "/categories", json={"name": f"Cat {int(time.time())}", "description": "Desc"})
+    resp = test_route("post", "/categories", json={"name": f"Cat {int(time.time())}", "type": "expense", "description": "Desc"})
     if resp and resp.status_code == 200:
         ids["cat"] = resp.json().get("id")
-        test_route("put", f"/categories/{ids['cat']}", json={"name": "Updated"})
+        test_route("put", f"/categories/{ids['cat']}", json={"name": "Updated", "type": "expense"})
 
     # -- Account Routes --
     print("\n[Account]")
@@ -95,6 +97,32 @@ def main():
             update_payload = payload.copy()
             update_payload["description"] = "Updated"
             test_route("put", f"/transactions/{ids['tx']}", json=update_payload)
+
+    # -- AI Routes --
+    print("\n[AI]")
+    ai_base_url = BASE_URL.replace("/api", "/ai")
+    
+    try:
+        resp = client.post(f"{ai_base_url}/quick-insert", json={"text": "Ho speso 20 euro per la spesa al supermercato"})
+        print(f"{resp.status_code} | POST   /quick-insert")
+        if resp.status_code >= 400:
+            print(f"   Detail: {resp.text[:100]}")
+    except Exception as e:
+        print(f"ERR | POST   /quick-insert ({e})")
+    
+    receipt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "resources", "receipt-benchmark.png"))
+    if os.path.exists(receipt_path):
+        try:
+            with open(receipt_path, "rb") as f:
+                # Use client directly since test_route doesn't support multipart files easily without kwargs modification
+                resp = client.post(f"{ai_base_url}/scan-receipt", files={"file": ("receipt-benchmark.png", f, "image/png")})
+                print(f"{resp.status_code} | POST   /scan-receipt")
+                if resp.status_code >= 400:
+                    print(f"   Detail: {resp.text[:100]}")
+        except Exception as e:
+            print(f"ERR | POST   /scan-receipt ({e})")
+    else:
+        print(f"SKIP | POST   /scan-receipt (file not found)")
 
     # -- DELETE for all routes --
     print("\n--- Cleanup (DELETE) ---")
