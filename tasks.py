@@ -15,7 +15,7 @@ def run(c: Context):
 
     __clearScreen()
 
-    c.run(f"uvicorn backend.app.main:app --host 0.0.0.0 --reload")
+    c.run("uvicorn backend.app.main:app --host 0.0.0.0 --reload")
 
 
 @task
@@ -37,57 +37,38 @@ def clean(c: Context):
 
 @task
 def checkLeaks(c: Context):
-    """Checks Git history for any secrets defined in .env."""
+    """Checks Git history for any values found in .env."""
     __clearScreen()
 
-    __printMessageWithSeparator("SCANNING GIT HISTORY FOR SECRETS FROM .ENV")
-
     if not os.path.exists(ENV_PATH):
-        print(f"Error: {ENV_PATH} not found.")
         return
-    secrets = {}
+
     with open(ENV_PATH, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, value = line.split("=", 1)
-                value = value.strip("'\"")
-
-                # We only check values longer than 3 chars to avoid noise
-                if value and len(value) > 3:
-                    secrets[key] = value
-
-    if not secrets:
-        print("No significant secrets found in .env to check.")
-        return
+        lines = f.readlines()
 
     found_any = False
+    for line in lines:
+        if "=" in line:
+            key, value = line.split("=", 1)
+            value = value.strip().strip("'\"")
 
-    for key, value in secrets.items():
-        print(f"Checking for {key}...", end=" ", flush=True)
-        # git log -S finds commits where the number of occurrences of 'value' changed
-        result = subprocess.run(
-            ["git", "log", "--all", "-S", value, "--oneline"],
-            capture_output=True,
-            text=True,
-        )
+            if len(value) > 3:
+                print(f"Checking {key}...", end=" ", flush=True)
 
-        if result.stdout.strip():
-            print("\n\n" + "!" * 90)
-            print(f"POSSIBLE COMPROMISE: '{key}' found in history:")
-            print(result.stdout.strip())
-            print("!" * 90 + "\n")
-            found_any = True
-        else:
-            print("Clean")
-    print(SEPARATOR)
+                result = subprocess.run(
+                    ["git", "log", "--all", "--fixed-strings", "-S", value, "--oneline"], capture_output=True, text=True
+                )
 
-    if not found_any:
-        print("SUCCESS: No secrets from .env were found in Git history.")
+                if result.stdout.strip():
+                    print(f"\nFOUND: {key} is in history!\n{result.stdout}")
+                    found_any = True
+                else:
+                    print("Clean")
+
+    if found_any:
+        print("\nDANGER: Secrets leaked in history.")
     else:
-        print("DANGER: Some secrets were found in your Git history!")
-        print("        Consider rotating these secrets and cleaning the history.")
-    print(SEPARATOR)
+        print("\nSUCCESS: No leaks found.")
 
 
 ## helper functions ####################################################################################################
