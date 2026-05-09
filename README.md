@@ -20,6 +20,10 @@ L'IA poi restituirà le informazioni nuovamente all'app che mostrera un form gi�
   - [Avvio dell'API backend](#avvio-dellapi-backend)
   - [Avvio del server frontend (in un nuovo terminale)](#avvio-del-server-frontend-in-un-nuovo-terminale)
 - [Task disponibili](#task-disponibili)
+- [Architettura e struttura del progetto](#architettura-e-struttura-del-progetto)
+  - [Il database](#il-database)
+  - [Il backend](#il-backend)
+  - [Il frontend](#il-frontend)
 - [Note di sviluppo](#note-di-sviluppo)
 - [Risoluzione dei problemi](#risoluzione-dei-problemi)
 
@@ -146,7 +150,71 @@ Rimuove le cartelle `__pycache__` e i file `.pytest_cache`.
 invoke checkLeaks
 ```
 
-Verifica che nessuna variabile di ambiente da `.env` sia stata eseguita il commit nella cronologia di Git.
+Verifica che nessuna variabile di ambiente da `.env` sia presente nella cronologia di Git.
+
+
+## Architettura e struttura del progetto
+
+Il progetto si suddivide in tre parti principali: database, backend e frontend. Diagramma rappresentativo in [`high-level-architecture.md`](./docs/high-level-architecture.md) (oppure riportato quà sotto).
+
+```mermaid
+flowchart TD
+    User((Utente)) --> Frontend[Frontend - Javascript]
+    Frontend <-->|Auth / JWT| Auth[Supabase Auth]
+    Frontend <-->|Richiesta + JWT / Risposta JSON| Backend[Backend - Python]
+    Backend <-->|Prompt / JSON| AI[Mistral AI]
+    Backend <-->|Query SQL / Dati| Database[(Supabase Database - PostgreSQL)]
+
+    style Frontend fill:#FFE599,stroke:#333,stroke-width:1.5px
+    style Backend fill:#B6D7A8,stroke:#333,stroke-width:1.5px
+    style Database fill:#F9CB9C,stroke:#333,stroke-width:1.5px
+    style Auth fill:#F9AB9C,stroke:#333,stroke-width:1.5px
+    style User fill:#ABD2FA,stroke:#333,stroke-width:1.5px
+    style AI fill:#FF62AD,stroke:#333,stroke-width:1.5px
+```
+
+Il flusso generale dell'applicazione è:
+1. Validazione dell'utente da parte del frontend: Il frontend ottiene il JWT da Supabase
+2. Dopo aver ottenuto il JWT il frontend effettua tutte le chiamate necessarie alle rotte del backend (creazione, ottenimento, modifica, eliminazione)
+3. Il backend poi interpreterà la richiesta del client e la soddisferà (query su database o uso AI) 
+4. Infine il frontend otterrà i dati richiesti e li interpreterà
+
+### Il database
+
+Il database è ospitato su Supabase contiene quattro entità principali:
+- `user_profile`: Entità che raggruppa un insieme di persone fisiche registrate
+- `account`: Entità che raggruppa un insieme di movimenti correlati
+- `transaction`: Entità che rappresenta una transazione
+- `category`: Entità che raggruppa un insieme di movimenti correlati. Può essere predefinita o creata dall'utente
+
+Per un riferimento grafico ecco lo [schema E-R](https://docs.google.com/drawings/d/17DGczBNJ1Bi9Ii_ux6JzthXio1NgncwWv75dBQOGBaA/edit?usp=sharing) creato in fase di progettazione del database:
+
+![img](./docs/database/SM-DB%20_SchemaER_v1-2.svg)
+
+
+### Il backend 
+
+Il backend in Python è suddiviso in tre "packages" principali:
+- `models`: dichiara tutti i modelli delle tabelle nel database oltre che quelli che le richieste HTTP devono rispettare
+- `routes`: definisce le rotte per la gestione delle entità del database 
+- `services`: contiene l'implementazione della logica di ogni singola rotta
+
+A servizio di questi packagers principali ci sono anche:
+- `utils`: che contiene varie utilità quali `getCurrentUser` ad esempio che permette l'ottenimento dell'identificativo di un utente dopo un controllo della validita del JWT
+- `config`: che contiene alcuni parametri di configurazione come rate-limits, modelli specifici di IA da usare o prompt i prompt di sistema per l'IA
+
+
+### Il frontend
+
+Dal punto di vista organizzativo suddiviso per: pagine, script e stili. Contiene tutto il codice necessario al funzionamento della UI, inclusa la logica di comunicazione con il backend con previo ottenimento del JWT. 
+
+La UI è suddivisa in varie pagine:
+- **Dashboard**: è la pagina principale dell'app con il calcolo del saldo dei conti inclusi nel saldo generale e un grafico che mostra entrate e uscite delle rispettive categorie
+- **Transazioni**: la pagina dove è possibile consultare, modificare ed eliminare tutte le transazioni inserite
+- **Categorie**: una pagina dedicata alla gestione delle categorie (default e non)
+- **Conti**: la pagina dedicata alla gestione dei conti con possibilità di modifica ed eliminazione oltre che al calcolo del saldo tra conti selezionati
+- **Profilo**: ovvero la pagina di gestione del profilo utente
+- **Informazioni**: informazioni generali sull'applicazione e sulle risorse utilizzate
 
 
 ## Note di sviluppo
@@ -168,3 +236,8 @@ Assicurati che tutte le variabili richieste in `.env` siano impostate. L'app gen
 
 **Porta già in uso:**
 Se la porta 8000 o 3000 è già in uso, modifica i file di configurazione del server pertinenti per utilizzare porte diverse.
+
+**Rate-limit:**
+Dopo svariate richieste consecutive è possibile si vada in contro al raggiungimento del rate-limit del backend in tal caso ci si può trovare davanti a errori come "Errore AI: Si è verificato un problema".
+
+
