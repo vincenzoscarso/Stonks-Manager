@@ -1,4 +1,4 @@
-# Stonks Manager <!-- omit in toc -->
+![Stonks-Manager-banner](./resources/SM-Banner.png)
 
 Stonks-Manager è una semplice app finanziaria che permette il controllo dei propri movimenti giornalieri. Permette di salvare i movimenti categorizzandoli opportunamente e assegnandoli ai dovuti conti di appartenenza. 
 
