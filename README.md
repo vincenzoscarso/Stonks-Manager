@@ -9,15 +9,15 @@ L'IA poi restituir√† le informazioni nuovamente all'app che mostrera un form gi√
 
 ## Tabella dei contenuti <!-- omit in toc -->
 
+> [!NOTE]
+> Per informazioni sulla configurazione della repository per avviare l'app in locale consultare le [istruzioni](./INSTRUCTIONS.md).
+
 - [Architettura e struttura del progetto](#architettura-e-struttura-del-progetto)
   - [Il database](#il-database)
   - [Il backend](#il-backend)
   - [Il frontend](#il-frontend)
 - [Note di sviluppo](#note-di-sviluppo)
 - [Risoluzione dei problemi](#risoluzione-dei-problemi)
-
-> [!NOTE]
-> Per informazioni sulla configurazione della repository per avviare l'app in locale consultare le [istruzioni](./INSTRUCTIONS.md)
 
 ## Architettura e struttura del progetto
 
