@@ -6,5 +6,6 @@ TODID.md
 TODO-all.md
 .agents/
 .venv/
+venv/
 __pycache__/
 resources/instructions
