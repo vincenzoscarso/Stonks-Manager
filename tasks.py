@@ -4,9 +4,9 @@ from invoke.context import Context
 from dotenv import load_dotenv
 
 SEPARATOR = "-" * 90
-MAIN_FILE = ".\\backend\\app\\main.py"
-PYTHON = ".venv\\Scripts\\python.exe"
-ENV_PATH = ".\\.env"
+MAIN_FILE = "./backend/app/main.py"
+PYTHON = ".venv/Scripts/python.exe"
+ENV_PATH = "./.env"
 
 
 
@@ -69,6 +69,7 @@ def checkLeaks(c: Context):
     __clearScreen()
 
     if not os.path.exists(ENV_PATH):
+        print("No env file found")
         return
 
     with open(ENV_PATH, "r") as f:
@@ -124,4 +125,4 @@ def __printMessageWithSeparator(msg: str):
 
 
 def __clearScreen():
-    subprocess.run("cls", shell=True)
+    subprocess.run("clear", shell=True)
