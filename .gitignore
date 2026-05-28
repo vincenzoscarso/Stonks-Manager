@@ -2,7 +2,6 @@
 *.pyc
 *.pytest_cache
 TODO.md
-TODO-all.md
 .agents/
 .venv/
 venv/
