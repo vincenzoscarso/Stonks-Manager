@@ -23,7 +23,7 @@ async function getToken() {
 async function apiFetch(path, method, body) {
     const token = await getToken();
 
-    var options = {
+    var request = {
         method: method,
         headers: {
             "Content-Type": "application/json",
@@ -31,16 +31,16 @@ async function apiFetch(path, method, body) {
     };
 
     if (token) {
-        options.headers["Authorization"] = "Bearer " + token;
+        request.headers["Authorization"] = "Bearer " + token;
     }
 
     if (body) {
-        options.body = JSON.stringify(body);
+        request.body = JSON.stringify(body);
     }
 
     var response;
     try {
-        response = await fetch(BACKEND_URL + path, options);
+        response = await fetch(BACKEND_URL + path, request);
     } catch (networkErr) {
         // Network error (server offline, timeout, CORS, etc.)
         throw new Error("Si è verificato un errore.");
