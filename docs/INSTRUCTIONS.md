@@ -135,4 +135,3 @@ invoke checkLeaks
 ```
 
 Verifica che nessuna variabile di ambiente da `.env` sia presente nella cronologia di Git.
-

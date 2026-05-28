@@ -10,7 +10,7 @@ L'IA poi restituirà le informazioni nuovamente all'app che mostrera un form gi�
 ## Tabella dei contenuti <!-- omit in toc -->
 
 > [!NOTE]
-> Per informazioni sulla configurazione della repository per avviare l'app in locale consultare le [istruzioni](./INSTRUCTIONS.md).
+> Per informazioni sulla configurazione della repository per avviare l'app in locale consultare le [istruzioni](./docs/INSTRUCTIONS.md).
 
 - [Architettura e struttura del progetto](#architettura-e-struttura-del-progetto)
   - [Il database](#il-database)
@@ -42,7 +42,7 @@ flowchart TD
 Il flusso generale dell'applicazione è:
 1. Validazione dell'utente da parte del frontend: Il frontend ottiene il JWT da Supabase
 2. Dopo aver ottenuto il JWT il frontend effettua tutte le chiamate necessarie alle rotte del backend (creazione, ottenimento, modifica, eliminazione)
-3. Il backend poi interpreterà la richiesta del client e la soddisferà (query su database o uso AI) 
+3. Il backend poi interpreterà la richiesta del client e la soddisferà (query su database o uso IA) 
 4. Infine il frontend otterrà i dati richiesti e li interpreterà
 
 ### Il database
@@ -82,6 +82,8 @@ La UI è suddivisa in varie pagine:
 - **Profilo**: ovvero la pagina di gestione del profilo utente
 - **Informazioni**: informazioni generali sull'applicazione e sulle risorse utilizzate
 
+> [!NOTE]
+> Ulteriori informazioni sul codice JavaScript dell'interfaccia possono essere trovare nella [documentazione](./docs/frontend/doc.md) del frontend
 
 ## Note di sviluppo
 
@@ -104,4 +106,4 @@ Assicurati che tutte le variabili richieste in `.env` siano impostate. L'app gen
 Se la porta 8000 o 3000 è già in uso, modifica i file di configurazione del server pertinenti per utilizzare porte diverse.
 
 **Rate-limit:**
-Dopo svariate richieste consecutive è possibile si vada in contro al raggiungimento del rate-limit del backend in tal caso ci si può trovare davanti a errori come "Errore AI: Si è verificato un problema".
+Dopo svariate richieste consecutive è possibile si vada in contro al raggiungimento del rate-limit del backend in tal caso ci si può trovare davanti a errori come "Errore IA: Si è verificato un problema".
