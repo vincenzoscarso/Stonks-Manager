@@ -1,17 +1,17 @@
-**Progetto**: "Stonks-Manager"
+**Project**: "Stonks-Manager"
 
-**Regole Sviluppo:**
-1. **Lingua:** Codice in inglese; UI in italiano.
-2. **Flusso:** Chiedere conferma prima di azioni non richieste.
-3. **Architettura (`high-level-architecture.md`):**
-   - **Frontend:** HTML, CSS, JS. Integrazione Supabase Auth (invio JWT al backend).
-   - **Backend:** Python (modalità *strict* per Pyright).
-   - **Database:** Supabase (PostgreSQL). Consultare Glossario e Schema in `docs/db/`.
+**Development Rules:**
+1. **Language:** Code in English; UI in Italian.
+2. **Flow:** Ask for confirmation before performing unsolicited actions.
+3. **Architecture (`high-level-architecture.md`):**
+   - **Frontend:** HTML, CSS, JS. Supabase Auth integration (sending JWT to the backend).
+   - **Backend:** Python (*strict* mode for Pyright).
+   - **Database:** Supabase (PostgreSQL). Consult Glossary and Schema in `docs/db/`.
 4. **Style guide**:
-   - **Nomi classi**: CamelCase (prima lettera maiuscola)
-   - **Nomi funzioni**: camelCase (prima lettera minuscola)
-   - **Nomi variabili**: snake_case
+   - **Class names**: CamelCase (uppercase first letter)
+   - **Function names**: camelCase (lowercase first letter)
+   - **Variable names**: snake_case
 
-**Note Tecniche:** 
-- Backend deve validare i dati e gestire la logica dell integrazione IA.
-- Massima attenzione alla coerenza con lo schema fisico del DB fornito.
+**Technical Notes:**
+- Backend must validate data and manage the AI integration logic.
+- Maximum attention to consistency with the provided physical DB schema.
