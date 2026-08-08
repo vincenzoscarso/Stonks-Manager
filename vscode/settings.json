@@ -1,7 +1,7 @@
 {
     "python.analysis.useLibraryCodeForTypes": true,
     "python.analysis.typeCheckingMode": "basic",
-    "python.defaultInterpreterPath": "/home/vincenzo/Code/_Projects/Stonks_Manager-Project/Stonks-Manager/venv/bin/python",
+    "python.defaultInterpreterPath": "/home/vincenzo/Code/Projects/Stonks_Manager-Project/Stonks-Manager/venv/bin/python",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/"
     ],
